@@ -1,0 +1,27 @@
+{"Time":"2019-08-29T18:38:21.907091+02:00","Action":"run","Package":"github.com/exercism/go-test-runner/tests/2","Test":"TestSample"}
+{"Time":"2019-08-29T18:38:21.907361+02:00","Action":"output","Package":"github.com/exercism/go-test-runner/tests/2","Test":"TestSample","Output":"=== RUN   TestSample\n"}
+{"Time":"2019-08-29T18:38:21.907391+02:00","Action":"run","Package":"github.com/exercism/go-test-runner/tests/2","Test":"TestSample/first_test"}
+{"Time":"2019-08-29T18:38:21.907404+02:00","Action":"output","Package":"github.com/exercism/go-test-runner/tests/2","Test":"TestSample/first_test","Output":"=== RUN   TestSample/first_test\n"}
+{"Time":"2019-08-29T18:38:21.907427+02:00","Action":"run","Package":"github.com/exercism/go-test-runner/tests/2","Test":"TestSample/second_test"}
+{"Time":"2019-08-29T18:38:21.907442+02:00","Action":"output","Package":"github.com/exercism/go-test-runner/tests/2","Test":"TestSample/second_test","Output":"=== RUN   TestSample/second_test\n"}
+{"Time":"2019-08-29T18:38:21.907459+02:00","Action":"run","Package":"github.com/exercism/go-test-runner/tests/2","Test":"TestSample/third_test"}
+{"Time":"2019-08-29T18:38:21.907468+02:00","Action":"output","Package":"github.com/exercism/go-test-runner/tests/2","Test":"TestSample/third_test","Output":"=== RUN   TestSample/third_test\n"}
+{"Time":"2019-08-29T18:38:21.907488+02:00","Action":"output","Package":"github.com/exercism/go-test-runner/tests/2","Test":"TestSample","Output":"--- FAIL: TestSample (0.00s)\n"}
+{"Time":"2019-08-29T18:38:21.907506+02:00","Action":"output","Package":"github.com/exercism/go-test-runner/tests/2","Test":"TestSample/first_test","Output":"    --- PASS: TestSample/first_test (0.00s)\n"}
+{"Time":"2019-08-29T18:38:21.907518+02:00","Action":"pass","Package":"github.com/exercism/go-test-runner/tests/2","Test":"TestSample/first_test","Elapsed":0}
+{"Time":"2019-08-29T18:38:21.907546+02:00","Action":"output","Package":"github.com/exercism/go-test-runner/tests/2","Test":"TestSample/second_test","Output":"    --- FAIL: TestSample/second_test (0.00s)\n"}
+{"Time":"2019-08-29T18:38:21.90756+02:00","Action":"output","Package":"github.com/exercism/go-test-runner/tests/2","Test":"TestSample/second_test","Output":"        sample_test.go:30: \n"}
+{"Time":"2019-08-29T18:38:21.90757+02:00","Action":"output","Package":"github.com/exercism/go-test-runner/tests/2","Test":"TestSample/second_test","Output":"            \tError Trace:\tsample_test.go:30\n"}
+{"Time":"2019-08-29T18:38:21.90758+02:00","Action":"output","Package":"github.com/exercism/go-test-runner/tests/2","Test":"TestSample/second_test","Output":"            \tError:      \tShould be false\n"}
+{"Time":"2019-08-29T18:38:21.907587+02:00","Action":"output","Package":"github.com/exercism/go-test-runner/tests/2","Test":"TestSample/second_test","Output":"            \tTest:       \tTestSample/second_test\n"}
+{"Time":"2019-08-29T18:38:21.907602+02:00","Action":"fail","Package":"github.com/exercism/go-test-runner/tests/2","Test":"TestSample/second_test","Elapsed":0}
+{"Time":"2019-08-29T18:38:21.907615+02:00","Action":"output","Package":"github.com/exercism/go-test-runner/tests/2","Test":"TestSample/third_test","Output":"    --- FAIL: TestSample/third_test (0.00s)\n"}
+{"Time":"2019-08-29T18:38:21.907626+02:00","Action":"output","Package":"github.com/exercism/go-test-runner/tests/2","Test":"TestSample/third_test","Output":"        sample_test.go:30: \n"}
+{"Time":"2019-08-29T18:38:21.907632+02:00","Action":"output","Package":"github.com/exercism/go-test-runner/tests/2","Test":"TestSample/third_test","Output":"            \tError Trace:\tsample_test.go:30\n"}
+{"Time":"2019-08-29T18:38:21.907639+02:00","Action":"output","Package":"github.com/exercism/go-test-runner/tests/2","Test":"TestSample/third_test","Output":"            \tError:      \tShould be false\n"}
+{"Time":"2019-08-29T18:38:21.907646+02:00","Action":"output","Package":"github.com/exercism/go-test-runner/tests/2","Test":"TestSample/third_test","Output":"            \tTest:       \tTestSample/third_test\n"}
+{"Time":"2019-08-29T18:38:21.907658+02:00","Action":"fail","Package":"github.com/exercism/go-test-runner/tests/2","Test":"TestSample/third_test","Elapsed":0}
+{"Time":"2019-08-29T18:38:21.907678+02:00","Action":"fail","Package":"github.com/exercism/go-test-runner/tests/2","Test":"TestSample","Elapsed":0}
+{"Time":"2019-08-29T18:38:21.907686+02:00","Action":"output","Package":"github.com/exercism/go-test-runner/tests/2","Output":"FAIL\n"}
+{"Time":"2019-08-29T18:38:21.908357+02:00","Action":"output","Package":"github.com/exercism/go-test-runner/tests/2","Output":"FAIL\tgithub.com/exercism/go-test-runner/tests/2\t0.013s\n"}
+{"Time":"2019-08-29T18:38:21.908403+02:00","Action":"fail","Package":"github.com/exercism/go-test-runner/tests/2","Elapsed":0.014}
