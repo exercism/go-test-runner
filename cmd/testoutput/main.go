@@ -1,13 +1,12 @@
 package main
 
 import (
-	"os"
 	"bufio"
-	"io"
 	"bytes"
-	"fmt"
 	"encoding/json"
+	"fmt"
 	"log"
+	"os"
 	"time"
 
 	"github.com/exercism/go-test-runner/exreport"
@@ -21,7 +20,7 @@ const (
 )
 
 func main() {
-	lines, err := readFile("test.out")
+	lines, err := readStream()
 	if err != nil {
 		log.Panic(err)
 	}
@@ -34,23 +33,22 @@ func main() {
 	fmt.Println(string(bts))
 }
 
-func readFile(file string) ([][]byte, error) {
+func readStream() ([][]byte, error) {
 	_, err := os.Stdin.Stat()
-    if err != nil {
-        panic(err)
-    }
+	if err != nil {
+		panic(err)
+	}
 
 	reader := bufio.NewReader(os.Stdin)
 	var output []byte
 
 	for {
 		input, err := reader.ReadByte()
-		if err != nil && err == io.EOF {
+		if err != nil {
 			break
 		}
 		output = append(output, input)
 	}
-
 
 	return bytes.Split(output, []byte{'\n'}), nil
 }
@@ -59,6 +57,11 @@ func getStructure(lines [][]byte) *exreport.Report {
 	var tests = map[string]*exreport.Test{}
 	for _, lineBytes := range lines {
 		var line testLine
+
+		if len(lineBytes) == 0 {
+			continue
+		}
+
 		if err := json.Unmarshal(lineBytes, &line); err != nil {
 			log.Println(err)
 			continue
