@@ -36,12 +36,12 @@ func main() {
 func readStream() ([][]byte, error) {
 	_, err := os.Stdin.Stat()
 	if err != nil {
-		log.Panic(err)
+		return nil, err
 	}
 
 	stream, err := ioutil.ReadAll(os.Stdin)
 	if err != nil {
-		log.Panic(err)
+		return nil, err
 	}
 
 	return bytes.Split(stream, []byte{'\n'}), nil
