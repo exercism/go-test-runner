@@ -1,10 +1,10 @@
 package main
 
 import (
-	"bufio"
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"log"
 	"os"
 	"time"
@@ -36,21 +36,15 @@ func main() {
 func readStream() ([][]byte, error) {
 	_, err := os.Stdin.Stat()
 	if err != nil {
-		panic(err)
+		log.Panic(err)
 	}
 
-	reader := bufio.NewReader(os.Stdin)
-	var output []byte
-
-	for {
-		input, err := reader.ReadByte()
-		if err != nil {
-			break
-		}
-		output = append(output, input)
+	stream, err := ioutil.ReadAll(os.Stdin)
+	if err != nil {
+		log.Panic(err)
 	}
 
-	return bytes.Split(output, []byte{'\n'}), nil
+	return bytes.Split(stream, []byte{'\n'}), nil
 }
 
 func getStructure(lines [][]byte) *exreport.Report {
