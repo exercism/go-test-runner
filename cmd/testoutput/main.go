@@ -3,10 +3,10 @@ package main
 import (
 	"bytes"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io/ioutil"
 	"log"
+	"os"
 	"time"
 
 	"github.com/exercism/go-test-runner/exreport"
@@ -20,7 +20,7 @@ const (
 )
 
 func main() {
-	lines, err := readFile("test.out")
+	lines, err := readStream()
 	if err != nil {
 		log.Panic(err)
 	}
@@ -33,21 +33,29 @@ func main() {
 	fmt.Println(string(bts))
 }
 
-func readFile(file string) ([][]byte, error) {
-	bts, err := ioutil.ReadFile(file)
+func readStream() ([][]byte, error) {
+	_, err := os.Stdin.Stat()
 	if err != nil {
 		return nil, err
 	}
-	if len(bts) < 5 {
-		return nil, errors.New("file is empty")
+
+	stream, err := ioutil.ReadAll(os.Stdin)
+	if err != nil {
+		return nil, err
 	}
-	return bytes.Split(bts, []byte{'\n'}), nil
+
+	return bytes.Split(stream, []byte{'\n'}), nil
 }
 
 func getStructure(lines [][]byte) *exreport.Report {
 	var tests = map[string]*exreport.Test{}
 	for _, lineBytes := range lines {
 		var line testLine
+
+		if len(lineBytes) == 0 {
+			continue
+		}
+
 		if err := json.Unmarshal(lineBytes, &line); err != nil {
 			log.Println(err)
 			continue
