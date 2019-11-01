@@ -14,7 +14,8 @@
 
 # The docker container will compile our "testoutput" module as "test-runner"
 
-go test --json $2 | test-runner > $3/results.json
+cd "$2" || exit
+go test --json . | /opt/test-runner/test-runner > $3/results.json
 
 # Local development example
 #go test --json ./$2 | go run cmd/testoutput/main.go > $3/results.json
