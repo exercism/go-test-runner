@@ -48,12 +48,49 @@ func readStream() ([][]byte, error) {
 }
 
 func getStructure(lines [][]byte) *exreport.Report {
+	report := &exreport.Report{
+		Status: statPass,
+		Tests:  nil,
+	}
+
+	tests := buildTests(lines)
+	for _, test := range tests {
+		if test == nil {
+			// just to be sure we dont get a nil pointer exception
+			continue
+		}
+		if test.Status == statErr {
+			report.Status = statErr
+		}
+		if test.Status == statSkip {
+			report.Status = statErr
+		}
+		if report.Status == statPass && test.Status == statFail {
+			report.Status = statFail
+		}
+
+		report.Tests = append(report.Tests, *test)
+	}
+
+	return report
+}
+
+func buildTests(lines [][]byte) map[string]*exreport.Test {
 	var tests = map[string]*exreport.Test{}
 	for _, lineBytes := range lines {
 		var line testLine
 
 		if len(lineBytes) == 0 {
 			continue
+		}
+
+		if bytes.HasPrefix(lineBytes, []byte("FAIL")) {
+			tests["build"] = &exreport.Test{
+				Name:    "build",
+				Status:  statErr,
+				Message: "build failed",
+			}
+			break
 		}
 
 		if err := json.Unmarshal(lineBytes, &line); err != nil {
@@ -79,28 +116,7 @@ func getStructure(lines [][]byte) *exreport.Report {
 			tests[line.Test].Status = statPass
 		}
 	}
-
-	report := &exreport.Report{
-		Status: statPass,
-		Tests:  nil,
-	}
-
-	for _, test := range tests {
-		if test == nil {
-			// just to be sure we dont get a nil pointer exception
-			continue
-		}
-		if test.Status == statSkip {
-			report.Status = statErr
-		}
-		if report.Status == statPass && test.Status == statFail {
-			report.Status = statFail
-		}
-
-		report.Tests = append(report.Tests, *test)
-	}
-
-	return report
+	return tests
 }
 
 type testLine struct {

@@ -2,8 +2,6 @@ package sample
 
 import (
 	"testing"
-
-	"github.com/stretchr/testify/assert"
 )
 
 var tests1 = []struct {
@@ -26,6 +24,8 @@ var tests1 = []struct {
 
 func TestSample1(t *testing.T) {
 	for _, tt := range tests1 {
-		assert.False(t, tt.fail)
+		if tt.fail {
+			t.Fail()
+		}
 	}
 }

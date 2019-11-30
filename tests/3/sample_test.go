@@ -31,3 +31,7 @@ func TestSample(t *testing.T) {
 		})
 	}
 }
+
+func t() int {
+	// parse error in solution
+}
