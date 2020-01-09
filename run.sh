@@ -14,6 +14,9 @@
 
 # The docker container will compile our "testoutput" module as "test-runner"
 
+export GOPATH=/go
+export PATH="$GOPATH/bin:/usr/local/go/bin:$PATH"
+
 cd "$2" || exit
 go test --json . | /opt/test-runner/test-runner > $3/results.json
 
