@@ -14,7 +14,6 @@
 
 # The docker container will compile our "testoutput" module as "test-runner"
 
-export GOLANG_VERSION=1.13.5
 export GOPATH=/go
 export PATH="$GOPATH/bin:/usr/local/go/bin:$PATH"
 
