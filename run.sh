@@ -18,7 +18,7 @@ export GOPATH=/go
 export PATH="$GOPATH/bin:/usr/local/go/bin:$PATH"
 
 cd "$2" || exit
-go test --json . | /opt/test-runner/test-runner > $3/results.json
+go test --json . 2>&1 | /opt/test-runner/test-runner > $3/results.json
 
 # Local development example
 #go test --json ./$2 | go run cmd/testoutput/main.go > $3/results.json

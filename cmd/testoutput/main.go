@@ -76,21 +76,32 @@ func getStructure(lines [][]byte) *exreport.Report {
 }
 
 func buildTests(lines [][]byte) map[string]*exreport.Test {
-	var tests = map[string]*exreport.Test{}
+	var (
+		tests   = map[string]*exreport.Test{}
+		failMsg [][]byte
+	)
+
+forLines:
 	for _, lineBytes := range lines {
 		var line testLine
 
-		if len(lineBytes) == 0 {
+		switch {
+		case len(lineBytes) == 0:
 			continue
-		}
-
-		if bytes.HasPrefix(lineBytes, []byte("FAIL")) {
+		case bytes.HasPrefix(lineBytes, []byte{'#'}):
+			// if there is a failure running the tests, supress the line with `#` at the beginning
+			continue
+		case bytes.HasPrefix(lineBytes, []byte("FAIL")):
 			tests["build"] = &exreport.Test{
 				Name:    "build",
 				Status:  statErr,
-				Message: "build failed",
+				Message: string(bytes.Join(failMsg, []byte{'\n'})),
 			}
-			break
+			break forLines
+		case !bytes.HasPrefix(lineBytes, []byte{'{'}):
+			// if the line is not a json, we need to collect the lines to gather why `go test --json` failed
+			failMsg = append(failMsg, lineBytes)
+			continue
 		}
 
 		if err := json.Unmarshal(lineBytes, &line); err != nil {
