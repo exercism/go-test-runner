@@ -53,6 +53,11 @@ func getStructure(lines [][]byte) *exreport.Report {
 		Status: statPass,
 		Tests:  nil,
 	}
+	defer func() {
+		if report.Tests == nil {
+			report.Tests = []exreport.Test{}
+		}
+	}()
 
 	tests, err := buildTests(lines)
 	if err != nil {
