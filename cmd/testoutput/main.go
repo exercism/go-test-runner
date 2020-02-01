@@ -3,6 +3,7 @@ package main
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"log"
@@ -52,8 +53,19 @@ func getStructure(lines [][]byte) *exreport.Report {
 		Status: statPass,
 		Tests:  nil,
 	}
+	defer func() {
+		if report.Tests == nil {
+			report.Tests = []exreport.Test{}
+		}
+	}()
 
-	tests := buildTests(lines)
+	tests, err := buildTests(lines)
+	if err != nil {
+		report.Status = statErr
+		report.Message = err.Error()
+		return report
+	}
+
 	for _, test := range tests {
 		if test == nil {
 			// just to be sure we dont get a nil pointer exception
@@ -75,13 +87,12 @@ func getStructure(lines [][]byte) *exreport.Report {
 	return report
 }
 
-func buildTests(lines [][]byte) map[string]*exreport.Test {
+func buildTests(lines [][]byte) (map[string]*exreport.Test, error) {
 	var (
 		tests   = map[string]*exreport.Test{}
 		failMsg [][]byte
 	)
 
-forLines:
 	for _, lineBytes := range lines {
 		var line testLine
 
@@ -92,12 +103,7 @@ forLines:
 			// if there is a failure running the tests, supress the line with `#` at the beginning
 			continue
 		case bytes.HasPrefix(lineBytes, []byte("FAIL")):
-			tests["build"] = &exreport.Test{
-				Name:    "build",
-				Status:  statErr,
-				Message: string(bytes.Join(failMsg, []byte{'\n'})),
-			}
-			break forLines
+			return nil, errors.New(string(bytes.Join(failMsg, []byte{'\n'})))
 		case !bytes.HasPrefix(lineBytes, []byte{'{'}):
 			// if the line is not a json, we need to collect the lines to gather why `go test --json` failed
 			failMsg = append(failMsg, lineBytes)
@@ -127,7 +133,7 @@ forLines:
 			tests[line.Test].Status = statPass
 		}
 	}
-	return tests
+	return tests, nil
 }
 
 type testLine struct {
