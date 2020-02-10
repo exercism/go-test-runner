@@ -99,11 +99,6 @@ func buildTests(lines [][]byte) (map[string]*exreport.Test, error) {
 		switch {
 		case len(lineBytes) == 0:
 			continue
-		case bytes.HasPrefix(lineBytes, []byte{'#'}):
-			// if there is a failure running the tests, supress the line with `#` at the beginning
-			continue
-		case bytes.HasPrefix(lineBytes, []byte("FAIL")):
-			return nil, errors.New(string(bytes.Join(failMsg, []byte{'\n'})))
 		case !bytes.HasPrefix(lineBytes, []byte{'{'}):
 			// if the line is not a json, we need to collect the lines to gather why `go test --json` failed
 			failMsg = append(failMsg, lineBytes)
@@ -132,6 +127,9 @@ func buildTests(lines [][]byte) (map[string]*exreport.Test, error) {
 		case statPass:
 			tests[line.Test].Status = statPass
 		}
+	}
+	if len(failMsg) != 0 {
+		return nil, errors.New(string(bytes.Join(failMsg, []byte{'\n'})))
 	}
 	return tests, nil
 }
