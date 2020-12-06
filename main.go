@@ -176,10 +176,13 @@ func buildTests(lines bytes.Buffer) (map[string]*testResult, error) {
 
 		switch line.Action {
 		case "run":
-			tests[line.Test] = &testResult{
-				Name:     line.Test,
-				TestCode: "test_code field is under construction\ncoming soon!",
-				Status:   statSkip,
+			tc := extractTestCode(line.Test)
+			if len(tc) > 0 {
+				tests[line.Test] = &testResult{
+					Name:     line.Test,
+					TestCode: tc,
+					Status:   statSkip,
+				}
 			}
 		case "output":
 			tests[line.Test].Message += "\n" + line.Output
