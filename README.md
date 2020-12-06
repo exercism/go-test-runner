@@ -46,54 +46,52 @@ For regular tests, the AST is used to return the code directly. For [tests conta
 ```go
 func TestParseCard(t *testing.T) {
   // The table data must be created first, and must be named `tests`
-	tests := []struct {
-		name string // The name field is required
-		card string
-		want int
-	}{
+  tests := []struct {
+    name string // The name field is required
+    card string
+    want int
+  }{
     // The relevant test data will be parsed out individually for each subtest
-		{
-			name: "parse queen",
-			card: "queen",
-			want: 10,
-		},
+    {
+      name: "parse queen",
+      card: "queen",
+      want: 10,
+    },
     // For example, this element will be parsed for `TestParseCard/parse_king`
-		{
-			name: "parse king",
-			card: "king",
-			want: 10,
-		},
-	}
+    {
+      name: "parse king",
+      card: "king",
+      want: 10,
+    },
+  }
 
   // The test loop must follow immediately after the table definition
   // The element should be named `tt`
   // The contents of the function literal will be extracted as the test code
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			if got := ParseCard(tt.card); got != tt.want {
-				t.Errorf("ParseCard(%s) = %d, want %d", tt.card, got, tt.want)
-			}
-		})
-	}
+  for _, tt := range tests {
+    t.Run(tt.name, func(t *testing.T) {
+      if got := ParseCard(tt.card); got != tt.want {
+        t.Errorf("ParseCard(%s) = %d, want %d", tt.card, got, tt.want)
+      }
+    })
+  }
 }
 ```
 
 The test code above will result in the following `test_code` field, corresponding to the test named `TestParseCard/parse_queen`:
 ```go
-	test := struct {
-		name string
-		card string
-		want int
-	}{
-		{
-			name: "parse queen",
-			card: "queen",
-			want: 10,
-		},
+tt := struct {
+  name string
+  card string
+  want int
+}{
+  name: "parse queen",
+  card: "queen",
+  want: 10,
+}
+t.Run(tt.name, func(t *testing.T) {
+  if got := ParseCard(tt.card); got != tt.want {
+    t.Errorf("ParseCard(%s) = %d, want %d", tt.card, got, tt.want)
   }
-	t.Run(tt.name, func(t *testing.T) {
-		if got := ParseCard(tt.card); got != tt.want {
-			t.Errorf("ParseCard(%s) = %d, want %d", tt.card, got, tt.want)
-		}
-	})
+})
 ```
