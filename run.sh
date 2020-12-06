@@ -1,25 +1,16 @@
 #!/bin/sh
 
 # Arguments:
-# $1: exercise slug (currently ignored)
-# $2: path to solution folder (without trailing slash or preceeding ./)
-# $3: path to output directory (without trailing slash or preceeding ./)
+# $1: `slug` - the exercise slug, e.g. `two-fer` (currently ignored)
+# $2: `input_dir` - the path containing the solution to test (without trailing slash or preceeding ./)
+# $3: `output_dir` - the output path for the test results path (without trailing slash or preceeding ./)
 
 # Example:
 # ./run.sh two-fer path/to/two-fer path/to/output/directory
-# ./run.sh two-fer twofer output
-
-# Run the test and pipe the json directly to the testoutput module
-# then dump the resulting json into the output folder
-
-# The docker container will compile our "testoutput" module as "test-runner"
+# ./run.sh two-fer twofer outdir
 
 export GOPATH=/go
 export PATH="$GOPATH/bin:/usr/local/go/bin:$PATH"
 
 cd "$2" || exit
-go test --json . 2>&1 | /opt/test-runner/test-runner > $3/results.json
-
-# Local development example
-#go test --json ./$2 | go run cmd/testoutput/main.go > $3/results.json
-
+/opt/test-runner/test-runner $2 $3

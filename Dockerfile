@@ -1,4 +1,4 @@
-FROM golang:1.13-alpine as builder
+FROM golang:1.15-alpine as builder
 
 # Install SSL ca certificates
 RUN apk update && apk add git && apk add ca-certificates
@@ -22,12 +22,12 @@ RUN chmod +x /go/bin/bin/run.sh
 COPY . /src
 
 # build
-RUN GOOS=linux GOARCH=amd64 go build -o /go/bin/test-runner /src/cmd/testoutput
+RUN GOOS=linux GOARCH=amd64 go build -o /go/bin/test-runner /src/
 
 # Build a minimal and secured container
 # To run the tests we need Go installed.
 # Therefore, unfortunately we cannot build from scratch as we would normally do with Go.
-FROM golang:1.13-alpine
+FROM golang:1.15-alpine
 COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
 COPY --from=builder /etc/passwd /etc/passwd
 COPY --from=builder /go/bin/ /opt/test-runner

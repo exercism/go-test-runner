@@ -1,24 +1,22 @@
 # Exercism's Go Test Runner
 
-This is Exercism's test runner for the Go track.
+This is [Exercism's test runner](https://github.com/exercism/v3-docs/tree/master/anatomy/track-tooling/test-runners#test-runners) for the Go track.
 
 ## Executing the Test Runner
 
-The test runner takes 3 parameters:
-- the exercise `slug`, e.g. `two-fer`
-- the `path` containing the solution to test
-- the `output path` for the test results
+The test runner takes 2 parameters:
+- `input_dir`: the path containing the solution to test
+- `output_dir`: the output path for the test results
 
-Example to execute for development (Go needs to be installed):
+Example to run for local development (Go needs to be installed):
 
 ```bash
-cd path/containing/tests
-go test --json . | go run ~/go-test-runner/cmd/testoutput > result.json
+go run main.go ~/Exercism/go/gigasecond outdir
 ```
 
 ## Docker
 
-To `build` execute the following from the repositories `root` directory:
+To `build` execute the following from the repository `root` directory:
 
 ```bash
 docker build -t exercism/go-test-runner .
@@ -33,5 +31,5 @@ docker run -v $(PATH_TO_SOLUTION):/solution exercism/go-test-runner ${SLUG} /sol
 Example:
 
 ```bash
-docker run -v ~/solution-238382y7sds7fsadfasj23j:/solution exercism/go-test-runner two-fer /solution /solution
+docker run -v ~/Exercism/go/gigasecond:/solution exercism/go-test-runner gigasecond /solution /solution
 ```
