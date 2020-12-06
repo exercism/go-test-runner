@@ -1,16 +1,16 @@
 package main
 
 import (
+	"bufio"
 	"bytes"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"io/ioutil"
 	"log"
 	"os"
+	"os/exec"
+	"path/filepath"
 	"time"
-
-	"github.com/exercism/go-test-runner/exreport"
 )
 
 const (
@@ -20,42 +20,100 @@ const (
 	statErr  = "error"
 )
 
+type testResult struct {
+	Name     string `json:"name"`
+	Status   string `json:"status"`
+	TestCode string `json:"test_code"`
+	Message  string `json:"message"`
+}
+
+type testReport struct {
+	Status  string       `json:"status"`
+	Message string       `json:"message,omitempty"`
+	Tests   []testResult `json:"tests"`
+}
+
+type testLine struct {
+	Time    time.Time
+	Action  string
+	Package string
+	Test    string
+	Elapsed float64
+	Output  string
+}
+
 func main() {
-	lines, err := readStream()
-	if err != nil {
-		log.Panic(err)
+	if len(os.Args) != 3 {
+		log.Fatal("usage: go-test-runner input_dir output_dir")
 	}
 
-	output := getStructure(lines)
+	input_dir := os.Args[1]
+	output_dir := os.Args[2]
+
+	if _, err := os.Stat(input_dir); os.IsNotExist(err) {
+		log.Fatal("input_dir does not exist: ", input_dir)
+	}
+
+	if _, err := os.Stat(output_dir); os.IsNotExist(err) {
+		log.Printf(
+			"output_dir does not exist, attempting to create: %s", output_dir,
+		)
+		if err := os.Mkdir(output_dir, os.ModeDir|0755); err != nil {
+			log.Fatal("output_dir does not exist: ", output_dir)
+		}
+	}
+
+	goExe, err := exec.LookPath("go")
+	if err != nil {
+		log.Fatal("failed to find go executable: ", err)
+	}
+
+	var stdout, stderr bytes.Buffer
+
+	testCmd := &exec.Cmd{
+		Dir:    input_dir,
+		Path:   goExe,
+		Args:   []string{goExe, "test", "--json", "."},
+		Stdout: &stdout,
+		Stderr: &stderr,
+	}
+
+	if err := testCmd.Run(); err != nil {
+		if exitError, ok := err.(*exec.ExitError); ok {
+			if 1 == exitError.ExitCode() {
+				// `go test` returns 1 when tests fail
+				// The test runner should continue and return 0 in this case
+				log.Printf(
+					"ignoring exit code 1 from test command '%s'", testCmd.String(),
+				)
+			} else {
+				log.Fatalf("'%s' failed with exit code %d: %s",
+					testCmd.String(), exitError.ExitCode(), err)
+			}
+		}
+	}
+
+	output := getStructure(stdout)
 	bts, err := json.MarshalIndent(output, "", "\t")
 	if err != nil {
-		log.Panic(err)
+		log.Fatalf("Failed to marshal json from `go test` output: %s", err)
 	}
-	fmt.Println(string(bts))
+
+	results := filepath.Join(output_dir, "results.json")
+	err = ioutil.WriteFile(results, bts, 0644)
+	if err != nil {
+		log.Fatalf("Failed to write results.json: %s", err)
+	}
 }
 
-func readStream() ([][]byte, error) {
-	_, err := os.Stdin.Stat()
-	if err != nil {
-		return nil, err
-	}
-
-	stream, err := ioutil.ReadAll(os.Stdin)
-	if err != nil {
-		return nil, err
-	}
-
-	return bytes.Split(stream, []byte{'\n'}), nil
-}
-
-func getStructure(lines [][]byte) *exreport.Report {
-	report := &exreport.Report{
+func getStructure(lines bytes.Buffer) *testReport {
+	report := &testReport{
 		Status: statPass,
 		Tests:  nil,
 	}
 	defer func() {
 		if report.Tests == nil {
-			report.Tests = []exreport.Test{}
+			report.Tests = []testResult{}
 		}
 	}()
 
@@ -87,13 +145,15 @@ func getStructure(lines [][]byte) *exreport.Report {
 	return report
 }
 
-func buildTests(lines [][]byte) (map[string]*exreport.Test, error) {
+func buildTests(lines bytes.Buffer) (map[string]*testResult, error) {
 	var (
-		tests   = map[string]*exreport.Test{}
+		tests   = map[string]*testResult{}
 		failMsg [][]byte
 	)
 
-	for _, lineBytes := range lines {
+	scanner := bufio.NewScanner(&lines)
+	for scanner.Scan() {
+		lineBytes := scanner.Bytes()
 		var line testLine
 
 		switch {
@@ -116,9 +176,10 @@ func buildTests(lines [][]byte) (map[string]*exreport.Test, error) {
 
 		switch line.Action {
 		case "run":
-			tests[line.Test] = &exreport.Test{
-				Name:   line.Test,
-				Status: statSkip,
+			tests[line.Test] = &testResult{
+				Name:     line.Test,
+				TestCode: "test_code field is under construction\ncoming soon!",
+				Status:   statSkip,
 			}
 		case "output":
 			tests[line.Test].Message += "\n" + line.Output
@@ -132,13 +193,4 @@ func buildTests(lines [][]byte) (map[string]*exreport.Test, error) {
 		return nil, errors.New(string(bytes.Join(failMsg, []byte{'\n'})))
 	}
 	return tests, nil
-}
-
-type testLine struct {
-	Time    time.Time
-	Action  string
-	Package string
-	Test    string
-	Elapsed float64
-	Output  string
 }
