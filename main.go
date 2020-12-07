@@ -93,7 +93,7 @@ func main() {
 		}
 	}
 
-	output := getStructure(stdout)
+	output := getStructure(stdout, input_dir)
 	bts, err := json.MarshalIndent(output, "", "\t")
 	if err != nil {
 		log.Fatalf("Failed to marshal json from `go test` output: %s", err)
@@ -106,7 +106,7 @@ func main() {
 	}
 }
 
-func getStructure(lines bytes.Buffer) *testReport {
+func getStructure(lines bytes.Buffer, input_dir string) *testReport {
 	report := &testReport{
 		Status: statPass,
 		Tests:  nil,
@@ -117,7 +117,7 @@ func getStructure(lines bytes.Buffer) *testReport {
 		}
 	}()
 
-	tests, err := buildTests(lines)
+	tests, err := buildTests(lines, input_dir)
 	if err != nil {
 		report.Status = statErr
 		report.Message = err.Error()
@@ -145,9 +145,10 @@ func getStructure(lines bytes.Buffer) *testReport {
 	return report
 }
 
-func buildTests(lines bytes.Buffer) (map[string]*testResult, error) {
+func buildTests(lines bytes.Buffer, input_dir string) (map[string]*testResult, error) {
 	var (
-		tests   = map[string]*testResult{}
+		tests = map[string]*testResult{}
+		// testFileMap = make(map[string]string)
 		failMsg [][]byte
 	)
 
@@ -176,7 +177,9 @@ func buildTests(lines bytes.Buffer) (map[string]*testResult, error) {
 
 		switch line.Action {
 		case "run":
-			tc := extractTestCode(line.Test)
+			//tf, cached := testFileMap[line.Test]
+			//testFileMap[line.Test] = findTestFile(input_dir, line.Test)
+			tc := extractTestCode(line.Test, input_dir)
 			if len(tc) > 0 {
 				tests[line.Test] = &testResult{
 					Name:     line.Test,
