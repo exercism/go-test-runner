@@ -84,7 +84,7 @@ func main() {
 				// `go test` returns 1 when tests fail
 				// The test runner should continue and return 0 in this case
 				log.Printf(
-					"ignoring exit code 1 from test command '%s'", testCmd.String(),
+					"warning: ignoring exit code 1 from '%s'", testCmd.String(),
 				)
 			} else {
 				log.Fatalf("'%s' failed with exit code %d: %s",
@@ -147,9 +147,9 @@ func getStructure(lines bytes.Buffer, input_dir string) *testReport {
 
 func buildTests(lines bytes.Buffer, input_dir string) (map[string]*testResult, error) {
 	var (
-		tests = map[string]*testResult{}
-		// testFileMap = make(map[string]string)
-		failMsg [][]byte
+		tests       = map[string]*testResult{}
+		testFileMap = make(map[string]string)
+		failMsg     [][]byte
 	)
 
 	scanner := bufio.NewScanner(&lines)
@@ -177,9 +177,12 @@ func buildTests(lines bytes.Buffer, input_dir string) (map[string]*testResult, e
 
 		switch line.Action {
 		case "run":
-			//tf, cached := testFileMap[line.Test]
-			//testFileMap[line.Test] = findTestFile(input_dir, line.Test)
-			tc := extractTestCode(line.Test, input_dir)
+			tf, cached := testFileMap[line.Test]
+			if !cached {
+				tf = findTestFile(input_dir, line.Test)
+				testFileMap[line.Test] = tf
+			}
+			tc := extractTestCode(line.Test, tf)
 			if len(tc) > 0 {
 				tests[line.Test] = &testResult{
 					Name:     line.Test,
