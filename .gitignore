@@ -1,0 +1,10 @@
+# Binaries for programs and plugins
+*.exe
+*.so
+bin/*
+log/*
+
+# Test binary, build with `go test -c`
+*.test
+
+outdir
