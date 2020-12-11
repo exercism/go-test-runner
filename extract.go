@@ -13,12 +13,13 @@ import (
 	"strings"
 )
 
-func splitTestName(testName string) (string, string) {
+func splitTestName(testName string, swap bool) (string, string) {
 	t := strings.Split(testName, "/")
 	if 1 == len(t) {
 		return t[0], ""
 	}
 	return t[0], t[1]
+	// [TODO] https://github.com/golang/go/blob/f1980efb92c011eab71aa61b68ccf58d845d1de7/src/testing/match.go#L50
 }
 
 func findTestFile(testName string, codePath string) string {
@@ -28,6 +29,7 @@ func findTestFile(testName string, codePath string) string {
 		log.Printf("warning: input_dir '%s' cannot be read: %s", codePath, err)
 		return ""
 	}
+	//[TODO] this should use parser.ParseExprFrom instead of string parsing
 	testdef := fmt.Sprintf("func %s", test)
 	for _, f := range files {
 		if strings.HasSuffix(f.Name(), "_test.go") {

@@ -38,14 +38,14 @@ docker run -v ~/Exercism/go/gigasecond:/solution exercism/go-test-runner gigasec
 
 The test runner is responsible for [returning the `test_code` field](https://github.com/exercism/v3-docs/blob/master/anatomy/track-tooling/test-runners/interface.md#command), which should be a copy of the test code corresponding to each test result. 
 
-For regular tests, the AST is used to return the code directly. For [tests containing subtests](https://blog.golang.org/subtests), additional processing is required. To ease the burden of advanced AST processing on unstructured / non deterministic test code, subtests should adhere to the following specification. Subtests not meeting the spec will be treated as regular tests, with the entire test function code being returned for every subtest. 
+For regular tests, the AST is used to return the code directly. For [tests containing subtests](https://blog.golang.org/subtests), additional processing is required. To ease the burden of advanced AST processing on unstructured / non deterministic test code, subtests should adhere to the following specification. Subtests not meeting the spec will be treated as regular tests, with the entire test function code being returned for every subtest. It woud be valuable to [implement a static analyzer](https://rauljordan.com/2020/11/01/custom-static-analysis-in-go-part-1.html) which warns the exercise submitter when they commit subtests not meeting the speciification.
 
 
 ### Subtest Format Specification
 
 ```go
 func TestParseCard(t *testing.T) {
-  // The table data must be created first, and must be named `tests`
+  // The table data must be created first
   tests := []struct {
     name string // The name field is required
     card string
@@ -65,11 +65,12 @@ func TestParseCard(t *testing.T) {
     },
   }
 
-  // The test loop must follow immediately after the table definition
-  // The element should be named `tt`
+  // The subtest loop must follow immediately after the table definition
   // The contents of the function literal will be extracted as the test code
   for _, tt := range tests {
+    // The Run() call must be the first statement in the function literal
     t.Run(tt.name, func(t *testing.T) {
+      // This code block will be pulled into the resulting test_code field
       if got := ParseCard(tt.card); got != tt.want {
         t.Errorf("ParseCard(%s) = %d, want %d", tt.card, got, tt.want)
       }
@@ -89,9 +90,7 @@ tt := struct {
   card: "queen",
   want: 10,
 }
-t.Run(tt.name, func(t *testing.T) {
-  if got := ParseCard(tt.card); got != tt.want {
-    t.Errorf("ParseCard(%s) = %d, want %d", tt.card, got, tt.want)
-  }
-})
+if got := ParseCard(tt.card); got != tt.want {
+  t.Errorf("ParseCard(%s) = %d, want %d", tt.card, got, tt.want)
+}
 ```

@@ -96,3 +96,23 @@ func TestExtractFunc(t *testing.T) {
 		})
 	}
 }
+
+// This is what an extracted subtest should look like
+// This test ensures that the spec creates valid standalonne test cases
+func TestSampleExtractedTest(t *testing.T) {
+	tt := struct {
+		name     string
+		testName string
+		testFile string
+		code     string
+	}{
+		name:     "found subtest",
+		testName: "TestFirstTurn/pair_of_jacks",
+		testFile: "testdata/concept/conditionals/conditionals_test.go",
+		code:     "pair_of_jacks",
+	}
+	if code := extractTestCode(tt.testName, tt.testFile); code != tt.code {
+		t.Errorf("extractTestCode(%v, %v) = %v; want %v",
+			tt.testName, tt.testFile, code, tt.code)
+	}
+}
