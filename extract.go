@@ -13,15 +13,17 @@ import (
 	"strings"
 )
 
-func splitTestName(testName string, swap bool) (string, string) {
+// Split a test name into its constituent parts
+// https://blog.golang.org/subtests#:~:text=The%20full%20name%20of%20a,first%20argument%20to%20Run%20otherwise.
+func splitTestName(testName string) (string, string) {
 	t := strings.Split(testName, "/")
 	if 1 == len(t) {
 		return t[0], ""
 	}
 	return t[0], t[1]
-	// [TODO] https://github.com/golang/go/blob/f1980efb92c011eab71aa61b68ccf58d845d1de7/src/testing/match.go#L50
 }
 
+// Search a code path and return the file containing the test argument
 func findTestFile(testName string, codePath string) string {
 	test, _ := splitTestName(testName)
 	files, err := ioutil.ReadDir(codePath)
@@ -49,7 +51,9 @@ func findTestFile(testName string, codePath string) string {
 	return ""
 }
 
+// return the associated test function code from the given test file
 func extractTestCode(testName string, testFile string) string {
+	// [TODO] properly escape the return string
 	test, subtest := splitTestName(testName)
 	if 0 == len(subtest) {
 		return extractFunc(test, testFile)
@@ -61,6 +65,7 @@ func extractTestCode(testName string, testFile string) string {
 	return subtcode
 }
 
+// return the code defining the argument function
 func extractFunc(testName string, testFile string) string {
 	fset := token.NewFileSet()
 	ppc := parser.ParseComments
