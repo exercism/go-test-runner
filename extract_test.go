@@ -1,6 +1,7 @@
 package main
 
 import (
+	"strings"
 	"testing"
 )
 
@@ -43,12 +44,12 @@ func TestFindTestFile(t *testing.T) {
 	}{
 		{
 			name:     "found test",
-			testName: "TestFirstTurn",
+			testName: "TestBlackjack",
 			codePath: "testdata/concept/conditionals",
 			fileName: "testdata/concept/conditionals/conditionals_test.go",
 		}, {
 			name:     "found subtest",
-			testName: "TestFirstTurn/pair_of_jacks",
+			testName: "TestBlackjack/blackjack_with_jack_(ace_first)",
 			codePath: "testdata/concept/conditionals",
 			fileName: "testdata/concept/conditionals/conditionals_test.go",
 		}, {
@@ -69,6 +70,7 @@ func TestFindTestFile(t *testing.T) {
 }
 
 func TestExtractTestCode(t *testing.T) {
+	tf := "testdata/concept/conditionals/conditionals_test.go"
 	tests := []struct {
 		name     string
 		testName string
@@ -76,22 +78,82 @@ func TestExtractTestCode(t *testing.T) {
 		code     string
 	}{
 		{
-			name:     "found test",
+			name:     "working regular test",
 			testName: "TestNonSubtest",
-			testFile: "testdata/concept/conditionals/conditionals_test.go",
+			testFile: tf,
 			code:     "func TestNonSubtest(t *testing.T) {\n\t// comments should be included\n\tfmt.Println(\"the whole block\")\n\tfmt.Println(\"should be returned\")\n}",
-		}, /* [TODO] - test a reasonable subtest{
-			name:     "found subtest",
-			testName: "TestFirstTurn/pair_of_jacks",
+		}, {
+			name:     "regular test missing subtest",
+			testName: "TestNonSubtest/nodice",
+			testFile: tf,
+			code:     "func TestNonSubtest(t *testing.T) {\n\t// comments should be included\n\tfmt.Println(\"the whole block\")\n\tfmt.Println(\"should be returned\")\n}",
+		}, {
+			name:     "working subtest",
+			testName: "TestParseCard/parse_jack",
+			testFile: tf,
+			code: `func TestParseCard(t *testing.T) {
+	tt := struct {
+		name string
+		card string
+		want int
+	}{
+	
+		name: "parse jack",
+		card: "jack",
+		want: 10,
+	}
+	
+	if got := ParseCard(tt.card); got != tt.want {
+		t.Errorf("ParseCard(%s) = %d, want %d", tt.card, got, tt.want)
+	}
+
+}`,
+		}, {
+			name:     "missing / not found subtest",
+			testName: "TestParseCard/parse_missing_subtests",
 			testFile: "testdata/concept/conditionals/conditionals_test.go",
-			code:     "pair_of_jacks",
-		}, */
+			code: `func TestParseCard(t *testing.T) {
+	tests := []struct {
+		name string
+		card string
+		want int
+	}{
+		{
+			name: "parse two",
+			card: "two",
+			want: 2,
+		},
+		{
+			name: "parse jack",
+			card: "jack",
+			want: 10,
+		},
+		{
+			name: "parse king",
+			card: "king",
+			want: 10,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if code := extractTestCode(tt.testName, tt.testFile); code != tt.code {
-				t.Errorf("extractTestCode(%v, %v) = %v; want %v",
-					tt.testName, tt.testFile, code, tt.code)
+			if got := ParseCard(tt.card); got != tt.want {
+				t.Errorf("ParseCard(%s) = %d, want %d", tt.card, got, tt.want)
+			}
+		})
+	}
+  }`,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			// whitespace / tabs were difficult to match between the test files
+			// and the test code / strings... so strip it
+			code := extractTestCode(tt.testName, tt.testFile)
+			code = strings.Join(strings.Fields(code), " ")
+			ttcode := strings.Join(strings.Fields(tt.code), " ")
+			if code != ttcode {
+				t.Errorf("extractTestCode(%v, %v) = \n%v\n; want \n%v",
+					tt.testName, tt.testFile, code, ttcode)
 			}
 		})
 	}

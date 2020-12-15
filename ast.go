@@ -94,6 +94,9 @@ func getSubCode(test string, sub string, code string, file string) string {
 	lhs1.Name = metadata.newTDName
 	// assign the subtest data to the new test data variable
 	rhs1.Elts = metadata.TD
+	// re-assign the type from an array to the underlying test data struct
+	rhs1.Type = rhs1.Type.(*ast.ArrayType).Elt
+
 	// create a new assignment statement to replace the original
 	newassgn := &ast.AssignStmt{
 		Lhs:    []ast.Expr{lhs1},
@@ -112,7 +115,7 @@ func getSubCode(test string, sub string, code string, file string) string {
 		log.Println("warning: failed to format extracted AST for subtest")
 		return ""
 	}
-	return buf.String()
+	return strings.TrimSpace(strings.TrimPrefix(buf.String(), "package main"))
 }
 
 // validate the test data assignment and return the associated metadata
@@ -156,7 +159,7 @@ func processTestDataAssgn(sub string, assgn *ast.AssignStmt) (*subTData, bool) {
 			}
 			// spaces are replaced with underscores in subtest names
 			// caveat: a subtest name mixing spaces and underscores cannot be found!
-			altsub := strconv.Quote(strings.Replace(sub, " ", "_", -1))
+			altsub := strconv.Quote(strings.Replace(sub, "_", " ", -1))
 			// still check the original subtest name, in case it had underscores
 			if strconv.Quote(sub) == value.Value || altsub == value.Value {
 				metadata.subTKey = kv.Key.(*ast.Ident).Name // subtest data "name"
