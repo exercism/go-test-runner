@@ -48,7 +48,6 @@ func findTestFile(testName string, codePath string) string {
 
 // return the associated test function code from the given test file
 func extractTestCode(testName string, testFile string) string {
-	// [TODO] properly escape the return string
 	test, subtest := splitTestName(testName)
 	tc := getFuncCode(test, testFile)
 	if 0 == len(subtest) {

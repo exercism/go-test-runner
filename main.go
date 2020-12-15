@@ -179,7 +179,7 @@ func buildTests(lines bytes.Buffer, input_dir string) (map[string]*testResult, e
 		case "run":
 			tf, cached := testFileMap[line.Test]
 			if !cached {
-				tf = findTestFile(input_dir, line.Test)
+				tf = findTestFile(line.Test, input_dir)
 				testFileMap[line.Test] = tf
 			}
 			tc := extractTestCode(line.Test, tf)
