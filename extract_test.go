@@ -68,7 +68,7 @@ func TestFindTestFile(t *testing.T) {
 	}
 }
 
-func TestExtractFunc(t *testing.T) {
+func TestExtractTestCode(t *testing.T) {
 	tests := []struct {
 		name     string
 		testName string
@@ -80,12 +80,12 @@ func TestExtractFunc(t *testing.T) {
 			testName: "TestNonSubtest",
 			testFile: "testdata/concept/conditionals/conditionals_test.go",
 			code:     "func TestNonSubtest(t *testing.T) {\n\t// comments should be included\n\tfmt.Println(\"the whole block\")\n\tfmt.Println(\"should be returned\")\n}",
-		}, {
+		}, /* [TODO] - test a reasonable subtest{
 			name:     "found subtest",
 			testName: "TestFirstTurn/pair_of_jacks",
 			testFile: "testdata/concept/conditionals/conditionals_test.go",
 			code:     "pair_of_jacks",
-		},
+		}, */
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -94,25 +94,5 @@ func TestExtractFunc(t *testing.T) {
 					tt.testName, tt.testFile, code, tt.code)
 			}
 		})
-	}
-}
-
-// This is what an extracted subtest should look like
-// This test ensures that the spec creates valid standalonne test cases
-func TestSampleExtractedTest(t *testing.T) {
-	tt := struct {
-		name     string
-		testName string
-		testFile string
-		code     string
-	}{
-		name:     "found subtest",
-		testName: "TestFirstTurn/pair_of_jacks",
-		testFile: "testdata/concept/conditionals/conditionals_test.go",
-		code:     "pair_of_jacks",
-	}
-	if code := extractTestCode(tt.testName, tt.testFile); code != tt.code {
-		t.Errorf("extractTestCode(%v, %v) = %v; want %v",
-			tt.testName, tt.testFile, code, tt.code)
 	}
 }

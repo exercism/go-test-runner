@@ -52,6 +52,8 @@ func TestParseCard(t *testing.T) {
   }{
     // The relevant test data will be parsed out individually for each subtest
     {
+      // spaces are fine in a test name, but do not mix them with underscores
+      // - because the extraction code won't be able to find it
       name: "parse queen",
       card: "queen",
       want: 10,

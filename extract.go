@@ -1,12 +1,7 @@
 package main
 
 import (
-	"bytes"
 	"fmt"
-	"go/ast"
-	"go/parser"
-	"go/printer"
-	"go/token"
 	"io/ioutil"
 	"log"
 	"path/filepath"
@@ -31,7 +26,6 @@ func findTestFile(testName string, codePath string) string {
 		log.Printf("warning: input_dir '%s' cannot be read: %s", codePath, err)
 		return ""
 	}
-	//[TODO] this should use parser.ParseExprFrom instead of string parsing
 	testdef := fmt.Sprintf("func %s", test)
 	for _, f := range files {
 		if strings.HasSuffix(f.Name(), "_test.go") {
@@ -42,6 +36,7 @@ func findTestFile(testName string, codePath string) string {
 			if err != nil {
 				log.Printf("warning: test file '%s' read failed: %s", testpath, err)
 			}
+			// Text processing is easier than using AST and should be reliable enough
 			if strings.Contains(string(fh), testdef) {
 				return testpath
 			}
@@ -55,37 +50,13 @@ func findTestFile(testName string, codePath string) string {
 func extractTestCode(testName string, testFile string) string {
 	// [TODO] properly escape the return string
 	test, subtest := splitTestName(testName)
+	tc := getFuncCode(test, testFile)
 	if 0 == len(subtest) {
-		return extractFunc(test, testFile)
+		return tc
 	}
-	subtcode := extractSub(test, subtest, testFile)
-	if 0 == len(subtcode) {
-		return extractFunc(test, testFile)
+	subtc := getSubCode(test, subtest, tc, testFile)
+	if 0 == len(subtc) {
+		return tc
 	}
-	return subtcode
-}
-
-// return the code defining the argument function
-func extractFunc(testName string, testFile string) string {
-	fset := token.NewFileSet()
-	ppc := parser.ParseComments
-	if file, err := parser.ParseFile(fset, testFile, nil, ppc); err == nil {
-		for _, d := range file.Decls {
-			if f, ok := d.(*ast.FuncDecl); ok && f.Name.Name == testName {
-				fun := &printer.CommentedNode{Node: f, Comments: file.Comments}
-				var buf bytes.Buffer
-				printer.Fprint(&buf, fset, fun)
-				return buf.String()
-			}
-		}
-	} else {
-		log.Printf(
-			"warning: '%s' not parsed from '%s': %s", testName, testFile, err,
-		)
-	}
-	return ""
-}
-
-func extractSub(test string, sub string, file string) string {
-	return sub
+	return subtc
 }

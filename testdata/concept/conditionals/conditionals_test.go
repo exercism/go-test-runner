@@ -11,6 +11,33 @@ func TestNonSubtest(t *testing.T) {
 	fmt.Println("should be returned")
 }
 
+//[TODO]
+func TestInvalidSubtest(t *testing.T) {
+	tests := []struct {
+		name string `json:"name"`
+		card string `json:"card"`
+		want int    `json:"want"`
+	}{
+		{
+			name: "parse ace",
+			card: "ace",
+			want: 11,
+		},
+	}
+	// A stmt between the test data and the range will prevent subtest processing
+	anything := "literally anything"
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := ParseCard(tt.card); got != tt.want {
+				t.Errorf("ParseCard(%s) = %d, want %d", tt.card, got, tt.want)
+			}
+		})
+	}
+	// comments should be included
+	fmt.Println("the whole block")
+	fmt.Println("should be returned")
+}
+
 func TestParseCard(t *testing.T) {
 	tests := []struct {
 		name string `json:"name"`
@@ -31,41 +58,6 @@ func TestParseCard(t *testing.T) {
 			name: "parse three",
 			card: "three",
 			want: 3,
-		},
-		{
-			name: "parse four",
-			card: "four",
-			want: 4,
-		},
-		{
-			name: "parse five",
-			card: "five",
-			want: 5,
-		},
-		{
-			name: "parse six",
-			card: "six",
-			want: 6,
-		},
-		{
-			name: "parse seven",
-			card: "seven",
-			want: 7,
-		},
-		{
-			name: "parse eight",
-			card: "eight",
-			want: 8,
-		},
-		{
-			name: "parse nine",
-			card: "nine",
-			want: 9,
-		},
-		{
-			name: "parse ten",
-			card: "ten",
-			want: 10,
 		},
 		{
 			name: "parse jack",
