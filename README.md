@@ -42,6 +42,7 @@ For top-level tests, the AST is used to return the function code directly. For [
 
 ### Subtest Format Specification
 
+The specification is annotated in the comments of the following example test:
 ```go
 func TestParseCard(t *testing.T) {
   // The table data must be created first
