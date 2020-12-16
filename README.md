@@ -32,6 +32,7 @@ Example:
 
 ```bash
 docker run -v ~/Exercism/go/gigasecond:/solution exercism/go-test-runner gigasecond /solution /solution
+```
 
 ## Subtests
 
