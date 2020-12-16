@@ -71,7 +71,7 @@ func TestParseCard(t *testing.T) {
   // The subtest loop must follow immediately after the table definition
   // The contents of the function literal will be extracted as the test code
   for _, tt := range tests {
-    // The Run() call must be the first statement in the function literal
+    // The Run() call must be the first statement in the for loop
     t.Run(tt.name, func(t *testing.T) {
       // This code block will be pulled into the resulting test_code field
       if got := ParseCard(tt.card); got != tt.want {

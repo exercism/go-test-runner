@@ -183,13 +183,14 @@ func buildTests(lines bytes.Buffer, input_dir string) (map[string]*testResult, e
 				testFileMap[line.Test] = tf
 			}
 			tc := extractTestCode(line.Test, tf)
-			if len(tc) > 0 {
-				tests[line.Test] = &testResult{
-					Name:     line.Test,
-					TestCode: tc,
-					Status:   statSkip,
-				}
+			result := &testResult{
+				Name:     line.Test,
+				Status:   statSkip,
 			}
+			if len(tc) > 0 {
+				result.TestCode = tc
+			}
+			tests[line.Test] = result
 		case "output":
 			tests[line.Test].Message += "\n" + line.Output
 		case statFail:
