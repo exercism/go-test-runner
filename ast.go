@@ -24,19 +24,18 @@ type subTData struct {
 func getFuncCode(test string, fstr string) string {
 	fset := token.NewFileSet()
 	ppc := parser.ParseComments
-	if file, err := parser.ParseFile(fset, fstr, nil, ppc); err == nil {
-		for _, d := range file.Decls {
-			if f, ok := d.(*ast.FuncDecl); ok && f.Name.Name == test {
-				fun := &printer.CommentedNode{Node: f, Comments: file.Comments}
-				var buf bytes.Buffer
-				printer.Fprint(&buf, fset, fun)
-				return buf.String()
-			}
+	file, err := parser.ParseFile(fset, fstr, nil, ppc)
+	if err != nil {
+		log.Printf("warning: '%s' not parsed from '%s': %s", test, fstr, err)
+		return ""
+	}
+	for _, d := range file.Decls {
+		if f, ok := d.(*ast.FuncDecl); ok && f.Name.Name == test {
+			fun := &printer.CommentedNode{Node: f, Comments: file.Comments}
+			var buf bytes.Buffer
+			printer.Fprint(&buf, fset, fun)
+			return buf.String()
 		}
-	} else {
-		log.Printf(
-			"warning: '%s' not parsed from '%s': %s", test, fstr, err,
-		)
 	}
 	return ""
 }
