@@ -201,28 +201,33 @@ func runTests(input_dir string) (bytes.Buffer, bool) {
 		Stderr: &stderr,
 	}
 
-	// Test ran without any problems, return json
-	if err := testCmd.Run(); err == nil {
+	err = testCmd.Run()
+	if err == nil {
+		// Test ran without any problems, return json
 		return stdout, true
-	} else if exitError, ok := err.(*exec.ExitError); !ok {
+	}
+
+	exitError, ok := err.(*exec.ExitError)
+	if !ok {
 		log.Fatalf("error: '%s' failed with non exit error %s",
 			testCmd.String(), err,
 		)
-		switch exc := exitError.ExitCode(); exc {
-		case 1:
-			// `go test` returns 1 when tests fail, this is fine
-			return stdout, true
-		case 2:
-			//  go test returns 2 on a compilation / build error
-			stdout.WriteString(fmt.Sprintf("'%s' returned exit code %d: %s",
-				testCmd.String(), exc, err,
-			))
-			return stdout, false
-		default:
-			log.Fatalf("error: '%s' failed with exit error %d: %s",
-				testCmd.String(), exc, err,
-			)
-		}
+	}
+
+	switch exc := exitError.ExitCode(); exc {
+	case 1:
+		// `go test` returns 1 when tests fail, this is fine
+		return stdout, true
+	case 2:
+		//  go test returns 2 on a compilation / build error
+		stdout.WriteString(fmt.Sprintf("'%s' returned exit code %d: %s",
+			testCmd.String(), exc, err,
+		))
+		return stdout, false
+	default:
+		log.Fatalf("error: '%s' failed with exit error %d: %s",
+			testCmd.String(), exc, err,
+		)
 	}
 	return stdout, false
 }
