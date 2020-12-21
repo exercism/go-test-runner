@@ -5,6 +5,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io/ioutil"
 	"log"
 	"os"
@@ -63,46 +64,25 @@ func main() {
 		}
 	}
 
-	goExe, err := exec.LookPath("go")
-	if err != nil {
-		log.Fatal("failed to find go executable: ", err)
-	}
-
-	var stdout, stderr bytes.Buffer
-
-	testCmd := &exec.Cmd{
-		Dir:    input_dir,
-		Path:   goExe,
-		Args:   []string{goExe, "test", "--json", "."},
-		Stdout: &stdout,
-		Stderr: &stderr,
-	}
-
-	if err := testCmd.Run(); err != nil {
-		if exitError, ok := err.(*exec.ExitError); ok {
-			if 1 == exitError.ExitCode() {
-				// `go test` returns 1 when tests fail
-				// The test runner should continue and return 0 in this case
-				log.Printf(
-					"warning: ignoring exit code 1 from '%s'", testCmd.String(),
-				)
-			} else {
-				log.Fatalf("'%s' failed with exit code %d: %s",
-					testCmd.String(), exitError.ExitCode(), err)
-			}
+	var output *testReport
+	if cmdres, ok := runTests(input_dir); ok {
+		output = getStructure(cmdres, input_dir)
+	} else {
+		output = &testReport{
+			Status:  statErr,
+			Message: cmdres.String(),
 		}
 	}
 
-	output := getStructure(stdout, input_dir)
 	bts, err := json.MarshalIndent(output, "", "\t")
 	if err != nil {
-		log.Fatalf("Failed to marshal json from `go test` output: %s", err)
+		log.Fatalf("error: Failed to marshal json from `go test` output: %s", err)
 	}
 
 	results := filepath.Join(output_dir, "results.json")
 	err = ioutil.WriteFile(results, bts, 0644)
 	if err != nil {
-		log.Fatalf("Failed to write results.json: %s", err)
+		log.Fatalf("error: Failed to write results.json: %s", err)
 	}
 }
 
@@ -184,8 +164,8 @@ func buildTests(lines bytes.Buffer, input_dir string) (map[string]*testResult, e
 			}
 			tc := extractTestCode(line.Test, tf)
 			result := &testResult{
-				Name:     line.Test,
-				Status:   statSkip,
+				Name:   line.Test,
+				Status: statSkip,
 			}
 			if len(tc) > 0 {
 				result.TestCode = tc
@@ -203,4 +183,46 @@ func buildTests(lines bytes.Buffer, input_dir string) (map[string]*testResult, e
 		return nil, errors.New(string(bytes.Join(failMsg, []byte{'\n'})))
 	}
 	return tests, nil
+}
+
+// Run the "go test --json ." command, return output
+func runTests(input_dir string) (bytes.Buffer, bool) {
+	goExe, err := exec.LookPath("go")
+	if err != nil {
+		log.Fatal("failed to find go executable: ", err)
+	}
+
+	var stdout, stderr bytes.Buffer
+	testCmd := &exec.Cmd{
+		Dir:    input_dir,
+		Path:   goExe,
+		Args:   []string{goExe, "test", "--json", "."},
+		Stdout: &stdout,
+		Stderr: &stderr,
+	}
+
+	// Test ran without any problems, return json
+	if err := testCmd.Run(); err == nil {
+		return stdout, true
+	} else if exitError, ok := err.(*exec.ExitError); !ok {
+		log.Fatalf("error: '%s' failed with non exit error %s",
+			testCmd.String(), err,
+		)
+		switch exc := exitError.ExitCode(); exc {
+		case 1:
+			// `go test` returns 1 when tests fail, this is fine
+			return stdout, true
+		case 2:
+			//  go test returns 2 on a compilation / build error
+			stdout.WriteString(fmt.Sprintf("'%s' returned exit code %d: %s",
+				testCmd.String(), exc, err,
+			))
+			return stdout, false
+		default:
+			log.Fatalf("error: '%s' failed with exit error %d: %s",
+				testCmd.String(), exc, err,
+			)
+		}
+	}
+	return stdout, false
 }
