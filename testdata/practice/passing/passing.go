@@ -1,7 +1,6 @@
 // https://exercism.io/tracks/go/exercises/gigasecond
 package gigasecond
 
-// import path for the time package from the standard library
 import "time"
 
 const Gigasecond = time.Second * 1e9
