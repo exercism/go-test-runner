@@ -76,13 +76,13 @@ func main() {
 
 	bts, err := json.MarshalIndent(output, "", "\t")
 	if err != nil {
-		log.Fatalf("error: Failed to marshal json from `go test` output: %s", err)
+		log.Fatalf("Failed to marshal json from `go test` output: %s", err)
 	}
 
 	results := filepath.Join(output_dir, "results.json")
 	err = ioutil.WriteFile(results, bts, 0644)
 	if err != nil {
-		log.Fatalf("error: Failed to write results.json: %s", err)
+		log.Fatalf("Failed to write results.json: %s", err)
 	}
 }
 

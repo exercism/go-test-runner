@@ -53,9 +53,16 @@ func extractTestCode(testName string, testFile string) string {
 	if 0 == len(subtest) {
 		return tc
 	}
+	defer handleASTPanic()
 	subtc := getSubCode(test, subtest, tc, testFile)
 	if 0 == len(subtc) {
 		return tc
 	}
 	return subtc
+}
+
+func handleASTPanic() {
+	if r := recover(); r != nil {
+		fmt.Println("warning: AST parsing failed to extract test code: ", r)
+	}
 }
