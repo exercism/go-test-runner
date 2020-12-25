@@ -25,7 +25,7 @@ func TestTODOSubtest(t *testing.T) {
 	}
 	// A stmt between the test data and the range will prevent subtest processing
 	// [TODO] - fix this, along with the TestBlackjack test below
-	anything := "literally anything"
+	_ = "literally anything"
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			if got := ParseCard(tt.card); got != tt.want {

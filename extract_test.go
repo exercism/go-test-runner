@@ -147,7 +147,7 @@ func TestExtractTestCode(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			// whitespace / tabs were difficult to match between the test files
-			// and the test code / strings... so strip it
+			// and the test code / strings... so strip them
 			code := extractTestCode(tt.testName, tt.testFile)
 			code = strings.Join(strings.Fields(code), " ")
 			ttcode := strings.Join(strings.Fields(tt.code), " ")

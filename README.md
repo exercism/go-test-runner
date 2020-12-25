@@ -11,7 +11,7 @@ The test runner requires 2 parameters:
 ### Local Development
 
 ```bash
-go run . ~/Exercism/go/gigasecond outdir
+go run . ./testdata/practice/passing outdir
 ```
 
 ### Docker
