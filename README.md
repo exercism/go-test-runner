@@ -14,26 +14,6 @@ The test runner requires 2 parameters:
 go run . ./testdata/practice/passing outdir
 ```
 
-### Docker
-
-To `build` execute the following from the repository `root` directory:
-
-```bash
-docker build -t exercism/go-test-runner .
-```
-
-To `run` from docker pass in the solutions path as a volume and execute with the necessary parameters:
-
-```bash
-docker run -v $(PATH_TO_SOLUTION):/solution exercism/go-test-runner ${SLUG} /solution /solution
-```
-
-Example:
-
-```bash
-docker run -v ~/Exercism/go/gigasecond:/solution exercism/go-test-runner gigasecond /solution /solution
-```
-
 ## Subtests
 
 The test runner is responsible for [returning the `test_code` field](https://github.com/exercism/v3-docs/blob/master/anatomy/track-tooling/test-runners/interface.md#command), which should be a copy of the test code corresponding to each test result. 

@@ -9,8 +9,5 @@
 # ./run.sh two-fer path/to/two-fer path/to/output/directory
 # ./run.sh two-fer twofer outdir
 
-export GOPATH=/go
-export PATH="$GOPATH/bin:/usr/local/go/bin:$PATH"
-
 cd "$2" || exit
-/opt/test-runner/test-runner $2 $3
+/opt/test-runner/bin/test-runner $2 $3
