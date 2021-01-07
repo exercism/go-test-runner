@@ -10,5 +10,6 @@ COPY . .
 RUN GOOS=linux GOARCH=amd64 go build -o /opt/test-runner/bin/test-runner /opt/test-runner
 
 USER appuser
+ENV GOCACHE=/tmp
 
 ENTRYPOINT ["sh", "/opt/test-runner/bin/run.sh"]
