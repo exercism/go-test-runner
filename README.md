@@ -14,9 +14,24 @@ The test runner requires 2 parameters:
 go run . ./testdata/practice/passing outdir
 ```
 
+#### Run the package tests
+
+```bash
+go test .
+```
+
+#### Interactive Debug / REPL
+
+The original AST parsing code was developed using a Jupyter interactive Go REPL
+thanks to the [gophernotes project](https://github.com/gopherdata/gophernotes). Consult the gophernotes docs for installation instructions. Once installed, you should be able to view, run, and modify the provided debug code "live" without constantly recompiling:
+
+```bash
+python3 -m notebook ast_debug.ipynb
+```
+
 ### Docker
 
-To `build` execute the following from the repository `root` directory:
+A docker container is used to run the test runner against submitted exercises. To build the container locally, execute the following from the repository `root` directory:
 
 ```bash
 docker build -t exercism/go-test-runner .

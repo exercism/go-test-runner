@@ -1,4 +1,4 @@
-package main
+package gotestrun
 
 import (
 	"strings"
@@ -148,11 +148,11 @@ func TestExtractTestCode(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			// whitespace / tabs were difficult to match between the test files
 			// and the test code / strings... so strip them
-			code := extractTestCode(tt.testName, tt.testFile)
+			code := ExtractTestCode(tt.testName, tt.testFile)
 			code = strings.Join(strings.Fields(code), " ")
 			ttcode := strings.Join(strings.Fields(tt.code), " ")
 			if code != ttcode {
-				t.Errorf("extractTestCode(%v, %v) = \n%v\n; want \n%v",
+				t.Errorf("ExtractTestCode(%v, %v) = \n%v\n; want \n%v",
 					tt.testName, tt.testFile, code, ttcode)
 			}
 		})

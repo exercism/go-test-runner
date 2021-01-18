@@ -1,4 +1,4 @@
-package main
+package gotestrun
 
 import (
 	"bufio"
@@ -162,7 +162,7 @@ func buildTests(lines bytes.Buffer, input_dir string) (map[string]*testResult, e
 				tf = findTestFile(line.Test, input_dir)
 				testFileMap[line.Test] = tf
 			}
-			tc := extractTestCode(line.Test, tf)
+			tc := ExtractTestCode(line.Test, tf)
 			result := &testResult{
 				Name:   line.Test,
 				Status: statSkip,
