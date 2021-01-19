@@ -3,42 +3,53 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"strings"
+	"testing"
 )
 
-func ExampleBrokenTestRun() {
-	input_dir := "./testdata/practice/broken"
-	if cmdres, ok := runTests(input_dir); ok {
-		fmt.Printf("Broken test did not fail %s", cmdres.String())
-	} else {
-		fmt.Println(cmdres.String())
-	}
-	// Output: FAIL	github.com/exercism/go-test-runner/testdata/practice/broken [build failed]
-	//'/usr/local/bin/go test --json .' returned exit code 2: exit status 2
-}
-
-func ExampleBrokenTestJson() {
+func TestRunTests_broken(t *testing.T) {
 	input_dir := "./testdata/practice/broken"
 	cmdres, ok := runTests(input_dir)
 	if ok {
-		fmt.Printf("Broken test did not fail: %s", cmdres.String())
+		t.Errorf("Broken test did not fail %s", cmdres.String())
 	}
+
+	res := cmdres.String()
+	pre := "FAIL	github.com/exercism/go-test-runner/testdata/practice/broken [build failed]"
+	post := "returned exit code 2: exit status 2"
+	if !strings.HasPrefix(res, pre) {
+		t.Errorf("Broken test run - unexpected prefix: %s", res)
+	}
+	if !strings.HasSuffix(res, post) {
+		t.Errorf("Broken test run - unexpected suffix: %s", res)
+	}
+
 	output := &testReport{
 		Status:  statErr,
-		Message: cmdres.String(),
+		Message: res,
 	}
-	if bts, err := json.MarshalIndent(output, "", "\t"); err != nil {
-		fmt.Printf("Broken test output not valid json: %s", err)
-	} else {
-		fmt.Println(string(bts))
+	btr, err := json.MarshalIndent(output, "", "\t")
+	if err != nil {
+		t.Errorf("Broken test output not valid json: %s", err)
 	}
-	// Output: {
-	//	"status": "error",
-	//	"message": "FAIL\tgithub.com/exercism/go-test-runner/testdata/practice/broken [build failed]\n'/usr/local/bin/go test --json .' returned exit code 2: exit status 2",
-	//	"tests": null
-	//}
+	tr := string(btr)
+
+	pre = `{
+	"status": "error",
+	"message": "FAIL\tgithub.com/exercism/go-test-runner/testdata/practice/broken [build failed]`
+
+	post = `returned exit code 2: exit status 2",
+	"tests": null
+}`
+	if !strings.HasPrefix(tr, pre) {
+		t.Errorf("Broken test run unexpected json prefix: %s", tr)
+	}
+	if !strings.HasSuffix(tr, post) {
+		t.Errorf("Broken test run unexpected json suffix: %s", tr)
+	}
 }
 
-func ExamplePassingTestJson() {
+func ExampleRunTests_passing() {
 	input_dir := "./testdata/practice/passing"
 
 	cmdres, ok := runTests(input_dir)
@@ -65,7 +76,7 @@ func ExamplePassingTestJson() {
 	//}
 }
 
-func ExampleFailingTestJson() {
+func ExampleRunTests_failing() {
 	input_dir := "./testdata/practice/failing"
 
 	cmdres, ok := runTests(input_dir)
