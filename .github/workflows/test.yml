@@ -1,12 +1,6 @@
 name: Run linter and tests
 
-on:
-  workflow_dispatch:
-  push:
-    branches:
-      - main
-      - master
-  pull_request:
+on: [push, pull_request, workflow_dispatch]
 
 jobs:
 
