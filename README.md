@@ -14,13 +14,21 @@ The test runner requires 2 parameters:
 ### Local Development
 
 ```bash
-go run . ./testdata/practice/passing outdir
+go run . testrunner/testdata/practice/passing outdir
 ```
 
 #### Run the package tests
 
 ```bash
-go test .
+go test ./...
+```
+
+#### Run the linter
+
+Linting (and testing) is performed in a [github action workflow - test.yml](.github/workflows/test.ym). You can [install golangci-lint locally](https://golangci-lint.run/usage/install/#local-installation) and then run:
+
+```bash
+golangci-lint run ./...
 ```
 
 #### Interactive Debug / REPL

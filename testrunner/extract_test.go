@@ -1,4 +1,4 @@
-package gotestrun
+package testrunner
 
 import (
 	"strings"
