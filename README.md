@@ -1,5 +1,7 @@
 # Exercism's Go Test Runner
 
+![Go CI](https://github.com/exercism/go-test-runner/workflows/Run%20linter%20and%20tests/badge.svg)
+
 This is [Exercism's test runner](https://github.com/exercism/v3-docs/tree/master/anatomy/track-tooling/test-runners#test-runners) for the Go track.
 
 ## Executing the Test Runner
