@@ -25,10 +25,10 @@ go test .
 
 #### Interactive Debug / REPL
 
-The original AST parsing code was developed using a Jupyter interactive Go REPL
-thanks to the [gophernotes project](https://github.com/gopherdata/gophernotes). Consult the gophernotes docs for installation instructions. Once installed, you should be able to view, run, and modify the provided debug code "live" without constantly recompiling:
+The original AST parsing code was developed [using a Jupyter interactive Go REPL](https://jupyter.readthedocs.io/en/latest/install/notebook-classic.html) thanks to the [gophernotes project](https://github.com/gopherdata/gophernotes). Consult the gophernotes docs for installation instructions. Once installed, you should be able to view, run, and modify the provided debug code "live" without constantly recompiling:
 
 ```bash
+# assuming python3 with notebook installed via pip3, ymmv
 python3 -m notebook ast_debug.ipynb
 ```
 
