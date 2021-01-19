@@ -1,6 +1,7 @@
 # Exercism's Go Test Runner
 
 ![Go CI](https://github.com/exercism/go-test-runner/workflows/Run%20linter%20and%20tests/badge.svg)
+[![Coverage Status](https://coveralls.io/repos/github/exercism/go-test-runner/badge.svg)](https://coveralls.io/github/exercism/go-test-runner)
 
 This is [Exercism's test runner](https://github.com/exercism/v3-docs/tree/master/anatomy/track-tooling/test-runners#test-runners) for the Go track.
 
