@@ -14,12 +14,35 @@ The test runner requires 2 parameters:
 ### Local Development
 
 ```bash
-go run . ./testdata/practice/passing outdir
+go run . testrunner/testdata/practice/passing outdir
+```
+
+#### Run the package tests
+
+```bash
+go test ./...
+```
+
+#### Run the linter
+
+Linting (and testing) is performed in a [github action workflow - test.yml](.github/workflows/test.ym). You can [install golangci-lint locally](https://golangci-lint.run/usage/install/#local-installation) and then run:
+
+```bash
+golangci-lint run ./...
+```
+
+#### Interactive Debug / REPL
+
+The original AST parsing code was developed [using a Jupyter interactive Go REPL](https://jupyter.readthedocs.io/en/latest/install/notebook-classic.html) thanks to the [gophernotes project](https://github.com/gopherdata/gophernotes). Consult the gophernotes docs for installation instructions. Once installed, you should be able to view, run, and modify the provided debug code "live" without constantly recompiling:
+
+```bash
+# assuming python3 with notebook installed via pip3, ymmv
+python3 -m notebook ast_debug.ipynb
 ```
 
 ### Docker
 
-To `build` execute the following from the repository `root` directory:
+A docker container is used to run the test runner against submitted exercises. To build the container locally, execute the following from the repository `root` directory:
 
 ```bash
 docker build -t exercism/go-test-runner .
