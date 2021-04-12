@@ -27,6 +27,7 @@ type testResult struct {
 
 type testReport struct {
 	Status  string       `json:"status"`
+	Version int          `json:"version"`
 	Message string       `json:"message,omitempty"`
 	Tests   []testResult `json:"tests"`
 }
@@ -42,11 +43,13 @@ type testLine struct {
 
 func Execute(input_dir string) []byte {
 	var report *testReport
+	ver := 2
 	if cmdres, ok := runTests(input_dir); ok {
-		report = getStructure(cmdres, input_dir)
+		report = getStructure(cmdres, input_dir, ver)
 	} else {
 		report = &testReport{
 			Status:  statErr,
+			Version: ver,
 			Message: cmdres.String(),
 		}
 	}
@@ -58,10 +61,11 @@ func Execute(input_dir string) []byte {
 	return bts
 }
 
-func getStructure(lines bytes.Buffer, input_dir string) *testReport {
+func getStructure(lines bytes.Buffer, input_dir string, ver int) *testReport {
 	report := &testReport{
-		Status: statPass,
-		Tests:  nil,
+		Status:  statPass,
+		Version: ver,
+		Tests:   nil,
 	}
 	defer func() {
 		if report.Tests == nil {

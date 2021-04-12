@@ -26,6 +26,7 @@ func TestRunTests_broken(t *testing.T) {
 
 	output := &testReport{
 		Status:  statErr,
+		Version: 2,
 		Message: res,
 	}
 	btr, err := json.MarshalIndent(output, "", "\t")
@@ -36,6 +37,7 @@ func TestRunTests_broken(t *testing.T) {
 
 	pre = `{
 	"status": "error",
+	"version": 2,
 	"message": "FAIL\tgithub.com/exercism/go-test-runner/testrunner/testdata/practice/broken [build failed]`
 
 	post = `returned exit code 2: exit status 2",
@@ -57,7 +59,7 @@ func ExampleRunTests_passing() {
 		fmt.Printf("Passing test failed: %s", cmdres.String())
 	}
 
-	output := getStructure(cmdres, input_dir)
+	output := getStructure(cmdres, input_dir, 2)
 	if bts, err := json.MarshalIndent(output, "", "\t"); err != nil {
 		fmt.Printf("Passing test output not valid json: %s", err)
 	} else {
@@ -65,6 +67,7 @@ func ExampleRunTests_passing() {
 	}
 	// Output: {
 	//	"status": "pass",
+	//	"version": 2,
 	//	"tests": [
 	//		{
 	//			"name": "TestTrivialPass",
@@ -84,7 +87,7 @@ func ExampleRunTests_failing() {
 		fmt.Printf("Failing test expected to return ok: %s", cmdres.String())
 	}
 
-	output := getStructure(cmdres, input_dir)
+	output := getStructure(cmdres, input_dir, 2)
 	if bts, err := json.MarshalIndent(output, "", "\t"); err != nil {
 		fmt.Printf("Failing test output not valid json: %s", err)
 	} else {
@@ -92,6 +95,7 @@ func ExampleRunTests_failing() {
 	}
 	// Output: {
 	//	"status": "fail",
+	//	"version": 2,
 	//	"tests": [
 	//		{
 	//			"name": "TestTrivialFail",
