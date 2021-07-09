@@ -9,3 +9,5 @@ log/*
 *.test
 
 outdir
+
+!bin/run-in-docker.sh
