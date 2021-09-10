@@ -161,6 +161,26 @@ func buildTests(lines bytes.Buffer, input_dir string) (map[string]*testResult, e
 	return tests, nil
 }
 
+// Run "go build ." and return whether it worked or not
+func testCompile(input_dir string) bool {
+	goExe, err := exec.LookPath("go")
+	if err != nil {
+		log.Fatal("failed to find go executable: ", err)
+	}
+
+	var stdout, stderr bytes.Buffer
+	testCmd := &exec.Cmd{
+		Dir:    input_dir,
+		Path:   goExe,
+		Args:   []string{goExe, "build", "."},
+		Stdout: &stdout,
+		Stderr: &stderr,
+	}
+
+	err = testCmd.Run()
+	return err == nil
+}
+
 // Run the "go test --json ." command, return output
 func runTests(input_dir string) (bytes.Buffer, bool) {
 	goExe, err := exec.LookPath("go")
@@ -189,17 +209,20 @@ func runTests(input_dir string) (bytes.Buffer, bool) {
 			testCmd.String(), err,
 		)
 	}
+	exc := exitError.ExitCode()
 
-	switch exc := exitError.ExitCode(); exc {
-	case 1:
-		// `go test` returns 1 when tests fail, this is fine
-		return stdout, true
-	case 2:
-		//  go test returns 2 on a compilation / build error
+	// Did it even compile?
+	if ok := testCompile(input_dir); !ok {
 		stdout.WriteString(fmt.Sprintf("'%s' returned exit code %d: %s",
 			testCmd.String(), exc, err,
 		))
 		return stdout, false
+	}
+
+	switch exc {
+	case 1:
+		// `go test` returns 1 when tests fail, this is fine
+		return stdout, true
 	default:
 		log.Fatalf("error: '%s' failed with exit error %d: %s",
 			testCmd.String(), exc, err,
