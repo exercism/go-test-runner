@@ -182,6 +182,7 @@ func testCompile(input_dir string) bool {
 }
 
 // Run the "go test --short --json ." command, return output
+// --short is used to exclude benchmark tests, given the spec / web UI currently cannot handle them
 func runTests(input_dir string) (bytes.Buffer, bool) {
 	goExe, err := exec.LookPath("go")
 	if err != nil {
