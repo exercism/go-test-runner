@@ -7,6 +7,8 @@ import (
 	"testing"
 )
 
+// TestRunTests_broken covers the case the code under test does not compile,
+// i.e. "go build ." would fail.
 func TestRunTests_broken(t *testing.T) {
 	input_dir := "./testdata/practice/broken"
 	cmdres, ok := runTests(input_dir)
@@ -55,6 +57,59 @@ func TestRunTests_broken(t *testing.T) {
 	}
 	if !strings.HasSuffix(tr, post) {
 		t.Errorf("Broken test run unexpected json suffix: %s", tr)
+	}
+}
+
+// TestRunTests_missingFunc covers the case that the test code does not compile,
+// i.e. "go build ." would succeed but "go test" returns compilation errors.
+func TestRunTests_missingFunc(t *testing.T) {
+	input_dir := "./testdata/practice/missing_func"
+	cmdres, ok := runTests(input_dir)
+	if ok {
+		t.Errorf("Missing function test did not fail %s", cmdres.String())
+	}
+
+	res := cmdres.String()
+	lines := strings.Split(res, "\n")
+
+	expectedLineSuffixes := []string{
+		"# github.com/exercism/go-test-runner/testrunner/testdata/practice/missing_func [github.com/exercism/go-test-runner/testrunner/testdata/practice/missing_func.test]",
+		"missing_func_test.go:39:11: undefined: AddGigasecond",
+		"missing_func_test.go:72:11: undefined: AddGigasecond",
+		"FAIL	github.com/exercism/go-test-runner/testrunner/testdata/practice/missing_func [build failed]",
+		"returned exit code 2: exit status 2",
+	}
+
+	for i, expectedSuffix := range expectedLineSuffixes {
+		if !strings.HasSuffix(lines[i], expectedSuffix) {
+			t.Errorf("Missing function test run - unexpected suffix in line: %s, want: %s", lines[i], expectedSuffix)
+		}
+	}
+
+	output := &testReport{
+		Status:  statErr,
+		Version: 2,
+		Message: res,
+	}
+	btr, err := json.MarshalIndent(output, "", "\t")
+	if err != nil {
+		t.Errorf("Missing function test output not valid json: %s", err)
+	}
+	tr := string(btr)
+
+	pre := `{
+	"status": "error",
+	"version": 2,
+	"message": "# github.com/exercism/go-test-runner/testrunner/testdata/practice/missing_func`
+
+	post := `returned exit code 2: exit status 2",
+	"tests": null
+}`
+	if !strings.HasPrefix(tr, pre) {
+		t.Errorf("Missing function test run unexpected json prefix: %s", tr)
+	}
+	if !strings.HasSuffix(tr, post) {
+		t.Errorf("Missing function test run unexpected json suffix: %s", tr)
 	}
 }
 
