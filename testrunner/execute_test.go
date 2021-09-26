@@ -121,9 +121,17 @@ func TestRunTests_brokenImport(t *testing.T) {
 	}
 
 	res := cmdres.String()
-	post := "returned exit code 1: exit status 1"
-	if !strings.HasSuffix(res, post) {
-		t.Errorf("Broken import test run - unexpected suffix: %s", res)
+	lines := strings.Split(res, "\n")
+
+	expectedLineSuffixes := []string{
+		"broken_import.go:5:8: expected ';', found ','",
+		"returned exit code 1: exit status 1",
+	}
+
+	for i, expectedSuffix := range expectedLineSuffixes {
+		if !strings.HasSuffix(lines[i], expectedSuffix) {
+			t.Errorf("Broken import test run - unexpected suffix in line: %s, want: %s", lines[i], expectedSuffix)
+		}
 	}
 
 	output := &testReport{
@@ -142,7 +150,7 @@ func TestRunTests_brokenImport(t *testing.T) {
 	"version": 2,
 	"message":`
 
-	post = `returned exit code 1: exit status 1",
+	post := `returned exit code 1: exit status 1",
 	"tests": null
 }`
 	if !strings.HasPrefix(tr, pre) {
