@@ -214,10 +214,13 @@ func runTests(input_dir string) (bytes.Buffer, bool) {
 
 	// Did it even compile?
 	if ok := testCompile(input_dir); !ok {
-		stdout.WriteString(fmt.Sprintf("'%s' returned exit code %d: %s",
+		// Combine stderr and stdout in the same order in which they
+		// show up in the console.
+		stderr.WriteString(stdout.String())
+		stderr.WriteString(fmt.Sprintf("'%s' returned exit code %d: %s",
 			testCmd.String(), exc, err,
 		))
-		return stdout, false
+		return stderr, false
 	}
 
 	switch exc {

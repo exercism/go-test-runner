@@ -15,13 +15,20 @@ func TestRunTests_broken(t *testing.T) {
 	}
 
 	res := cmdres.String()
-	pre := "FAIL	github.com/exercism/go-test-runner/testrunner/testdata/practice/broken [build failed]"
-	post := "returned exit code 2: exit status 2"
-	if !strings.HasPrefix(res, pre) {
-		t.Errorf("Broken test run - unexpected prefix: %s", res)
+	lines := strings.Split(res, "\n")
+
+	expectedLineSuffixes := []string{
+		"# github.com/exercism/go-test-runner/testrunner/testdata/practice/broken [github.com/exercism/go-test-runner/testrunner/testdata/practice/broken.test]",
+		"broken.go:11:2: undefined: unknownVar",
+		"broken.go:12:2: undefined: UnknownFunction",
+		"FAIL	github.com/exercism/go-test-runner/testrunner/testdata/practice/broken [build failed]",
+		"returned exit code 2: exit status 2",
 	}
-	if !strings.HasSuffix(res, post) {
-		t.Errorf("Broken test run - unexpected suffix: %s", res)
+
+	for i, expectedSuffix := range expectedLineSuffixes {
+		if !strings.HasSuffix(lines[i], expectedSuffix) {
+			t.Errorf("Broken test run - unexpected suffix in line: %s, want: %s", lines[i], expectedSuffix)
+		}
 	}
 
 	output := &testReport{
@@ -35,12 +42,12 @@ func TestRunTests_broken(t *testing.T) {
 	}
 	tr := string(btr)
 
-	pre = `{
+	pre := `{
 	"status": "error",
 	"version": 2,
-	"message": "FAIL\tgithub.com/exercism/go-test-runner/testrunner/testdata/practice/broken [build failed]`
+	"message": "# github.com/exercism/go-test-runner/testrunner/testdata/practice/broken`
 
-	post = `returned exit code 2: exit status 2",
+	post := `returned exit code 2: exit status 2",
 	"tests": null
 }`
 	if !strings.HasPrefix(tr, pre) {
