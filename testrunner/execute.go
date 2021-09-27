@@ -162,7 +162,7 @@ func buildTests(lines bytes.Buffer, input_dir string) (map[string]*testResult, e
 }
 
 // Run "go build ." and return whether it worked or not
-func testCompile(input_dir string) bool {
+func codeCompiles(input_dir string) bool {
 	goExe, err := exec.LookPath("go")
 	if err != nil {
 		log.Fatal("failed to find go executable: ", err)
@@ -173,6 +173,28 @@ func testCompile(input_dir string) bool {
 		Dir:    input_dir,
 		Path:   goExe,
 		Args:   []string{goExe, "build", "."},
+		Stdout: &stdout,
+		Stderr: &stderr,
+	}
+
+	err = testCmd.Run()
+	return err == nil
+}
+
+// Compile the tests and return whether it worked or not
+func testCompiles(input_dir string) bool {
+	goExe, err := exec.LookPath("go")
+	if err != nil {
+		log.Fatal("failed to find go executable: ", err)
+	}
+
+	var stdout, stderr bytes.Buffer
+	testCmd := &exec.Cmd{
+		Dir:  input_dir,
+		Path: goExe,
+		// "Official" recommendation for compiling but not running the tests
+		// https://github.com/golang/go/issues/46712#issuecomment-859949958
+		Args:   []string{goExe, "test", "-c", "-o", "/dev/null"},
 		Stdout: &stdout,
 		Stderr: &stderr,
 	}
@@ -212,12 +234,15 @@ func runTests(input_dir string) (bytes.Buffer, bool) {
 	}
 	exc := exitError.ExitCode()
 
-	// Did it even compile?
-	if ok := testCompile(input_dir); !ok {
-		stdout.WriteString(fmt.Sprintf("'%s' returned exit code %d: %s",
+	// Do the code and the test even compile?
+	if !codeCompiles(input_dir) || !testCompiles(input_dir) {
+		// Combine stderr and stdout in the same order in which they
+		// show up in the console.
+		stderr.WriteString(stdout.String())
+		stderr.WriteString(fmt.Sprintf("'%s' returned exit code %d: %s",
 			testCmd.String(), exc, err,
 		))
-		return stdout, false
+		return stderr, false
 	}
 
 	switch exc {
