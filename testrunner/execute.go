@@ -81,10 +81,6 @@ func getStructure(lines bytes.Buffer, input_dir string, ver int) *testReport {
 	}
 
 	for _, test := range tests {
-		if test == nil {
-			// just to be sure we dont get a nil pointer exception
-			continue
-		}
 		if test.Status == statErr {
 			report.Status = statErr
 		}
@@ -95,17 +91,18 @@ func getStructure(lines bytes.Buffer, input_dir string, ver int) *testReport {
 			report.Status = statFail
 		}
 
-		report.Tests = append(report.Tests, *test)
+		report.Tests = append(report.Tests, test)
 	}
 
 	return report
 }
 
-func buildTests(lines bytes.Buffer, input_dir string) (map[string]*testResult, error) {
+func buildTests(lines bytes.Buffer, input_dir string) ([]testResult, error) {
 	var (
-		tests       = map[string]*testResult{}
-		testFileMap = make(map[string]string)
-		failMsg     [][]byte
+		results         = []testResult{}
+		resultIdxByName = make(map[string]int)
+		testFileMap     = make(map[string]string)
+		failMsg         [][]byte
 	)
 
 	scanner := bufio.NewScanner(&lines)
@@ -139,29 +136,46 @@ func buildTests(lines bytes.Buffer, input_dir string) (map[string]*testResult, e
 				testFileMap[line.Test] = tf
 			}
 			tc := ExtractTestCode(line.Test, tf)
-			result := &testResult{
+			result := testResult{
 				Name:   line.Test,
 				Status: statSkip,
 			}
 			if len(tc) > 0 {
 				result.TestCode = tc
 			}
-			tests[line.Test] = result
+
+			results = append(results, result)
+			resultIdxByName[result.Name] = len(results) - 1
 		case "output":
-			tests[line.Test].Message += "\n" + line.Output
+			if idx, found := resultIdxByName[line.Test]; found {
+				results[idx].Message += "\n" + line.Output
+			} else {
+				log.Printf("cannot extend message for unknown test: %s\n", line.Test)
+				continue
+			}
 		case statFail:
-			tests[line.Test].Status = statFail
+			if idx, found := resultIdxByName[line.Test]; found {
+				results[idx].Status = statFail
+			} else {
+				log.Printf("cannot set failed status for unknown test: %s\n", line.Test)
+				continue
+			}
 		case statPass:
-			tests[line.Test].Status = statPass
+			if idx, found := resultIdxByName[line.Test]; found {
+				results[idx].Status = statPass
+			} else {
+				log.Printf("cannot set passing status for unknown test: %s\n", line.Test)
+				continue
+			}
 		}
 	}
 	if len(failMsg) != 0 {
 		return nil, errors.New(string(bytes.Join(failMsg, []byte{'\n'})))
 	}
-	return tests, nil
+	return results, nil
 }
 
-// Run "go build ." and return whether it worked or not
+// codeCompiles runs "go build ." and return whether it worked or not
 func codeCompiles(input_dir string) bool {
 	goExe, err := exec.LookPath("go")
 	if err != nil {
@@ -181,7 +195,7 @@ func codeCompiles(input_dir string) bool {
 	return err == nil
 }
 
-// Compile the tests and return whether it worked or not
+// testCompiles compiles the tests and return whether it worked or not
 func testCompiles(input_dir string) bool {
 	goExe, err := exec.LookPath("go")
 	if err != nil {
