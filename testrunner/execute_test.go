@@ -3,6 +3,7 @@ package testrunner
 import (
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"strings"
 	"testing"
 )
@@ -161,32 +162,28 @@ func TestRunTests_brokenImport(t *testing.T) {
 	}
 }
 
-func ExampleRunTests_passing() {
+func TestRunTests_passing(t *testing.T) {
 	input_dir := "./testdata/practice/passing"
 
 	cmdres, ok := runTests(input_dir)
 	if !ok {
-		fmt.Printf("Passing test failed: %s", cmdres.String())
+		t.Errorf("Passing test failed: %s", cmdres.String())
 	}
 
 	output := getStructure(cmdres, input_dir, 2)
-	if bts, err := json.MarshalIndent(output, "", "\t"); err != nil {
-		fmt.Printf("Passing test output not valid json: %s", err)
-	} else {
-		fmt.Println(string(bts))
+	jsonBytes, err := json.MarshalIndent(output, "", "\t")
+	if err != nil {
+		t.Fatalf("Passing test output not valid json: %s", err)
 	}
-	// Output: {
-	//	"status": "pass",
-	//	"version": 2,
-	//	"tests": [
-	//		{
-	//			"name": "TestTrivialPass",
-	//			"status": "pass",
-	//			"test_code": "// Trivial passing test example\nfunc TestTrivialPass(t *testing.T) {\n\tif true != true {\n\t\tt.Fatal(\"This was supposed to be a tautological statement!\")\n\t}\n\tfmt.Println(\"sample passing test output\")\n}",
-	//			"message": "\n=== RUN   TestTrivialPass\n\nsample passing test output\n\n--- PASS: TestTrivialPass (0.00s)\n"
-	//		}
-	//	]
-	//}
+
+	expectedOutput, err := ioutil.ReadFile("./testdata/practice/passing/output.json")
+	if err != nil {
+		t.Fatalf("Passing test failed to read test file: %s", err)
+	}
+
+	if string(jsonBytes) != string(expectedOutput) {
+		t.Errorf("Passing test failed, got:\n%s\n, want:\n%s\n", string(jsonBytes), string(expectedOutput))
+	}
 }
 
 func ExampleRunTests_failing() {
