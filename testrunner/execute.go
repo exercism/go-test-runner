@@ -177,6 +177,10 @@ func buildTests(lines bytes.Buffer, input_dir string) ([]testResult, error) {
 	return results, nil
 }
 
+// removeObsoleteParentTests cleans up the list of test results. The parent test
+// would just repeat the same code that is shown for the sub tests but would not
+// contain the result of the assertions. This is confusing for students. So if a
+// sub-test is found, the corresponding parent test is removed from the results.
 func removeObsoleteParentTests(tests []testResult) []testResult {
 	namesOfObsoleteTests := []string{}
 	for _, test := range tests {
