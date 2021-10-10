@@ -174,7 +174,6 @@ func buildTests(lines bytes.Buffer, input_dir string) ([]testResult, error) {
 	if len(failMsg) != 0 {
 		return nil, errors.New(string(bytes.Join(failMsg, []byte{'\n'})))
 	}
-
 	return results, nil
 }
 
