@@ -80,6 +80,8 @@ func getStructure(lines bytes.Buffer, input_dir string, ver int) *testReport {
 		return report
 	}
 
+	tests = removeObsoleteParentTests(tests)
+
 	for _, test := range tests {
 		if test.Status == statErr {
 			report.Status = statErr
@@ -172,7 +174,36 @@ func buildTests(lines bytes.Buffer, input_dir string) ([]testResult, error) {
 	if len(failMsg) != 0 {
 		return nil, errors.New(string(bytes.Join(failMsg, []byte{'\n'})))
 	}
+
 	return results, nil
+}
+
+func removeObsoleteParentTests(tests []testResult) []testResult {
+	namesOfObsoleteTests := []string{}
+	for _, test := range tests {
+		parentName, subTestName := splitTestName(test.Name)
+		if subTestName != "" && !contains(namesOfObsoleteTests, parentName) {
+			namesOfObsoleteTests = append(namesOfObsoleteTests, parentName)
+		}
+	}
+
+	results := []testResult{}
+	for _, test := range tests {
+		if !contains(namesOfObsoleteTests, test.Name) {
+			results = append(results, test)
+		}
+	}
+
+	return results
+}
+
+func contains(list []string, target string) bool {
+	for _, item := range list {
+		if item == target {
+			return true
+		}
+	}
+	return false
 }
 
 // codeCompiles runs "go build ." and return whether it worked or not
