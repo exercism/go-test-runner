@@ -80,6 +80,8 @@ func getStructure(lines bytes.Buffer, input_dir string, ver int) *testReport {
 		return report
 	}
 
+	tests = removeObsoleteParentTests(tests)
+
 	for _, test := range tests {
 		if test.Status == statErr {
 			report.Status = statErr
@@ -173,6 +175,29 @@ func buildTests(lines bytes.Buffer, input_dir string) ([]testResult, error) {
 		return nil, errors.New(string(bytes.Join(failMsg, []byte{'\n'})))
 	}
 	return results, nil
+}
+
+// removeObsoleteParentTests cleans up the list of test results. The parent test
+// would just repeat the same code that is shown for the sub tests but would not
+// contain the result of the assertions. This is confusing for students. So if a
+// sub-test is found, the corresponding parent test is removed from the results.
+func removeObsoleteParentTests(tests []testResult) []testResult {
+	namesOfObsoleteTests := map[string]bool{}
+	for _, test := range tests {
+		parentName, subTestName := splitTestName(test.Name)
+		if subTestName != "" {
+			namesOfObsoleteTests[parentName] = true
+		}
+	}
+
+	results := []testResult{}
+	for _, test := range tests {
+		if !namesOfObsoleteTests[test.Name] {
+			results = append(results, test)
+		}
+	}
+
+	return results
 }
 
 // codeCompiles runs "go build ." and return whether it worked or not
