@@ -88,6 +88,25 @@ func TestExtractTestCode(t *testing.T) {
 			testFile: tf,
 			code:     "func TestNonSubtest(t *testing.T) {\n\t// comments should be included\n\tfmt.Println(\"the whole block\")\n\tfmt.Println(\"should be returned\")\n}",
 		}, {
+			name:     "working simple subtest with different name for test data variable",
+			testName: "TestSimpleSubtest/parse_ace",
+			testFile: tf,
+			code: `func TestSimpleSubtest(t *testing.T) {
+	tt := struct {
+		name string
+		card string
+		want int
+	}{
+		name: "parse ace",
+		card: "ace",
+		want: 11,
+	}
+	
+	if got := ParseCard(tt.card); got != tt.want {
+		t.Errorf("ParseCard(%s) = %d, want %d", tt.card, got, tt.want)
+	}
+}`,
+		}, {
 			name:     "working subtest",
 			testName: "TestParseCard/parse_jack",
 			testFile: tf,
@@ -113,6 +132,8 @@ func TestExtractTestCode(t *testing.T) {
 			testName: "TestBlackjack/blackjack_with_ten_(ace_first)",
 			testFile: tf,
 			code: `func TestBlackjack(t *testing.T) {
+	someAssignment := "test"
+	fmt.Println(someAssignment)
 	type hand struct {
 		card1, card2 string
 	}

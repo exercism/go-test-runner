@@ -11,6 +11,27 @@ func TestNonSubtest(t *testing.T) {
 	fmt.Println("should be returned")
 }
 
+func TestSimpleSubtest(t *testing.T) {
+	myTests := []struct {
+		name string
+		card string
+		want int
+	}{
+		{
+			name: "parse ace",
+			card: "ace",
+			want: 11,
+		},
+	}
+	for _, tt := range myTests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := ParseCard(tt.card); got != tt.want {
+				t.Errorf("ParseCard(%s) = %d, want %d", tt.card, got, tt.want)
+			}
+		})
+	}
+}
+
 func TestParseCard(t *testing.T) {
 	tests := []struct {
 		name string
@@ -43,6 +64,9 @@ func TestParseCard(t *testing.T) {
 }
 
 func TestBlackjack(t *testing.T) {
+	someAssignment := "test"
+	fmt.Println(someAssignment)
+
 	type hand struct {
 		card1, card2 string
 	}
