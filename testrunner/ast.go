@@ -72,19 +72,16 @@ func getSubCode(test string, sub string, code string, file string) string {
 		return ""
 	}
 
-	tdast := astInfo.testDataAst
-	rast := astInfo.rangeAst
-
 	// process the test data assignment
-	metadata, ok := processTestDataAssgn(sub, tdast)
+	metadata, ok := processTestDataAssgn(sub, astInfo.testDataAst)
 	if !ok {
 		return ""
 	}
-	lhs1 := tdast.Lhs[0].(*ast.Ident)        // f.Decls[0].Body.List[0].Lhs[0]
-	rhs1 := tdast.Rhs[0].(*ast.CompositeLit) // f.Decls[0].Body.List[0].Rhs[0]
+	lhs1 := astInfo.testDataAst.Lhs[0].(*ast.Ident)        // f.Decls[0].Body.List[0].Lhs[0]
+	rhs1 := astInfo.testDataAst.Rhs[0].(*ast.CompositeLit) // f.Decls[0].Body.List[0].Rhs[0]
 
 	// process the range statement
-	ok = processRange(metadata, rast)
+	ok = processRange(metadata, astInfo.rangeAst)
 	if !ok {
 		return ""
 	}
@@ -95,16 +92,6 @@ func getSubCode(test string, sub string, code string, file string) string {
 	rhs1.Elts = metadata.TD
 	// re-assign the type from an array to the underlying test data struct
 	rhs1.Type = rhs1.Type.(*ast.ArrayType).Elt
-
-	// create a new assignment statement to replace the original
-	newassgn := &ast.AssignStmt{
-		Lhs:    []ast.Expr{lhs1},
-		TokPos: tdast.TokPos,
-		Tok:    tdast.Tok,
-		Rhs:    []ast.Expr{rhs1},
-	}
-	// swap the new assignment statement for the original
-	fbAST[astInfo.rangeAstIdx] = newassgn
 
 	// swap the original range statement for the extracted subtest
 	fbAST[astInfo.rangeAstIdx] = metadata.subTest
