@@ -182,31 +182,22 @@ func buildTests(lines bytes.Buffer, input_dir string) ([]testResult, error) {
 // contain the result of the assertions. This is confusing for students. So if a
 // sub-test is found, the corresponding parent test is removed from the results.
 func removeObsoleteParentTests(tests []testResult) []testResult {
-	namesOfObsoleteTests := []string{}
+	namesOfObsoleteTests := map[string]bool{}
 	for _, test := range tests {
 		parentName, subTestName := splitTestName(test.Name)
-		if subTestName != "" && !contains(namesOfObsoleteTests, parentName) {
-			namesOfObsoleteTests = append(namesOfObsoleteTests, parentName)
+		if subTestName != "" {
+			namesOfObsoleteTests[parentName] = true
 		}
 	}
 
 	results := []testResult{}
 	for _, test := range tests {
-		if !contains(namesOfObsoleteTests, test.Name) {
+		if !namesOfObsoleteTests[test.Name] {
 			results = append(results, test)
 		}
 	}
 
 	return results
-}
-
-func contains(list []string, target string) bool {
-	for _, item := range list {
-		if item == target {
-			return true
-		}
-	}
-	return false
 }
 
 // codeCompiles runs "go build ." and return whether it worked or not
