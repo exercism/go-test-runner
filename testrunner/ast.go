@@ -2,6 +2,7 @@ package testrunner
 
 import (
 	"bytes"
+	"errors"
 	"go/ast"
 	"go/format"
 	"go/parser"
@@ -18,6 +19,13 @@ type subTData struct {
 	newTDName  string     // new test data struct name
 	TD         []ast.Expr // original test data node
 	subTest    ast.Stmt   // Run() function literal node
+}
+
+type subTestAstInfo struct {
+	testDataAst    *ast.AssignStmt
+	testDataAstIdx int
+	rangeAst       *ast.RangeStmt
+	rangeAstIdx    int
 }
 
 // return the code of the "test" function from a file
@@ -58,22 +66,14 @@ func getSubCode(test string, sub string, code string, file string) string {
 	}
 	fbAST := fAST.Body.List // f.Decls[0].Body.List
 
-	if 2 != len(fbAST) {
-		log.Println("warning: subtests are constrained to two top level nodes")
+	astInfo, err := findTestDataAndRange(fbAST)
+	if err != nil {
+		log.Printf("warning: could not find test table and/or range: %v\n", err)
 		return ""
 	}
 
-	// Ensure the first two statements are an assignment and a range
-	tdast, ok := fbAST[0].(*ast.AssignStmt) // f.Decls[0].Body.List[0]
-	if !ok {
-		log.Println("warning: first subtest statement must be an assignment")
-		return ""
-	}
-	rast, ok := fbAST[1].(*ast.RangeStmt) // f.Decls[0].Body.List[1]
-	if !ok {
-		log.Println("warning: second subtest statement must be a range keyword")
-		return ""
-	}
+	tdast := astInfo.testDataAst
+	rast := astInfo.rangeAst
 
 	// process the test data assignment
 	metadata, ok := processTestDataAssgn(sub, tdast)
@@ -104,10 +104,10 @@ func getSubCode(test string, sub string, code string, file string) string {
 		Rhs:    []ast.Expr{rhs1},
 	}
 	// swap the new assignment statement for the original
-	tdast = newassgn
+	fbAST[astInfo.rangeAstIdx] = newassgn
 
 	// swap the original range statement for the extracted subtest
-	fbAST[1] = metadata.subTest
+	fbAST[astInfo.rangeAstIdx] = metadata.subTest
 
 	var buf bytes.Buffer
 	if err := format.Node(&buf, fset, f); err != nil {
@@ -115,6 +115,43 @@ func getSubCode(test string, sub string, code string, file string) string {
 		return ""
 	}
 	return strings.TrimSpace(strings.TrimPrefix(buf.String(), "package main"))
+}
+
+func findTestDataAndRange(stmtList []ast.Stmt) (subTestAstInfo, error) {
+	result := subTestAstInfo{}
+
+	for i := range stmtList {
+		assignCandidate, ok := stmtList[i].(*ast.AssignStmt)
+		if ok && result.testDataAst == nil {
+			result.testDataAst = assignCandidate
+			result.testDataAstIdx = i
+		} else if ok {
+			identifier, isIdentifier := assignCandidate.Lhs[0].(*ast.Ident)
+			if !isIdentifier {
+				continue
+			}
+			// Overwrite the assignment we already found in case there is an
+			// assignment to a "tests" variable.
+			if identifier.Name == "tests" {
+				result.testDataAst = assignCandidate
+				result.testDataAstIdx = i
+			}
+		}
+
+		rangeCandidate, ok := stmtList[i].(*ast.RangeStmt)
+		// If we found a range after we already found an assignment, we are good to go.
+		if ok && result.testDataAst != nil {
+			result.rangeAst = rangeCandidate
+			result.rangeAstIdx = i
+			return result, nil
+		}
+	}
+
+	if result.testDataAst == nil {
+		return subTestAstInfo{}, errors.New("failed to find assignment in sub-test")
+	}
+
+	return subTestAstInfo{}, errors.New("failed to find range statement in sub-test")
 }
 
 // validate the test data assignment and return the associated metadata

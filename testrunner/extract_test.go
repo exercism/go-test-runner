@@ -109,29 +109,32 @@ func TestExtractTestCode(t *testing.T) {
 
 }`,
 		}, {
-			name:     "subtest with additional code above the test table",
+			name:     "subtest with additional code above and below test data",
 			testName: "TestBlackjack/blackjack_with_ten_(ace_first)",
 			testFile: tf,
-			code: `func TestBackjack(t *testing.T) {
+			code: `func TestBlackjack(t *testing.T) {
 	type hand struct {
 		card1, card2 string
 	}
-	tests := []struct {
+	tt := struct {
 		name string
 		hand hand
 		want bool
 	}{
-		{
-			name: "blackjack with ten (ace first)",
-			hand: hand{card1: "ace", card2: "ten"},
-			want: true,
-		},
+		name: "blackjack with ten (ace first)",
+		hand: hand{card1: "ace", card2: "ten"},
+		want: true,
 	}
+
+	_ = "literally anything"
 	
 	if got := IsBlackjack(tt.hand.card1, tt.hand.card2); got != tt.want {
 		t.Errorf("IsBlackjack(%s, %s) = %t, want %t", tt.hand.card1, tt.hand.card2, got, tt.want)
 	}
 
+	// Additional statements should be included
+	fmt.Println("the whole block")
+	fmt.Println("should be returned")
 }`,
 		}, {
 			name:     "missing / not found subtest",
