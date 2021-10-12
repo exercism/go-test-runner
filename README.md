@@ -80,7 +80,9 @@ At some point, we may [implement a static analyzer](https://rauljordan.com/2020/
 The specification is annotated in the comments of the following example test:
 ```go
 func TestParseCard(t *testing.T) {
-  // The table data must be created first
+  // There can be additional code here, it will be shown for all subtests.
+  // If the code here includes assignments, the test data variable below needs to be called "tests".
+
   tests := []struct {
     name string // The name field is required
     card string
@@ -102,7 +104,8 @@ func TestParseCard(t *testing.T) {
     },
   }
 
-  // The subtest loop must follow immediately after the table definition
+  // There can be additional code here, it will be shown for all subtests.
+
   // The contents of the function literal will be extracted as the test code
   for _, tt := range tests {
     // The Run() call must be the first statement in the for loop
@@ -113,6 +116,8 @@ func TestParseCard(t *testing.T) {
       }
     })
   }
+
+  // There can be additional code here, it will be shown for all subtests.
 }
 ```
 

@@ -11,8 +11,8 @@ func TestNonSubtest(t *testing.T) {
 	fmt.Println("should be returned")
 }
 
-func TestTODOSubtest(t *testing.T) {
-	tests := []struct {
+func TestSimpleSubtest(t *testing.T) {
+	myTests := []struct {
 		name string
 		card string
 		want int
@@ -23,19 +23,13 @@ func TestTODOSubtest(t *testing.T) {
 			want: 11,
 		},
 	}
-	// A stmt between the test data and the range will prevent subtest processing
-	// [TODO] - fix this, along with the TestBlackjack test below
-	_ = "literally anything"
-	for _, tt := range tests {
+	for _, tt := range myTests {
 		t.Run(tt.name, func(t *testing.T) {
 			if got := ParseCard(tt.card); got != tt.want {
 				t.Errorf("ParseCard(%s) = %d, want %d", tt.card, got, tt.want)
 			}
 		})
 	}
-	// comments should be included
-	fmt.Println("the whole block")
-	fmt.Println("should be returned")
 }
 
 func TestParseCard(t *testing.T) {
@@ -69,8 +63,10 @@ func TestParseCard(t *testing.T) {
 	}
 }
 
-// [TODO] make the subtest extraction more flexible, to support this test
 func TestBlackjack(t *testing.T) {
+	someAssignment := "test"
+	fmt.Println(someAssignment)
+
 	type hand struct {
 		card1, card2 string
 	}
@@ -105,6 +101,9 @@ func TestBlackjack(t *testing.T) {
 			want: false,
 		},
 	}
+
+	_ = "literally anything"
+
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			if got := IsBlackjack(tt.hand.card1, tt.hand.card2); got != tt.want {
@@ -112,4 +111,8 @@ func TestBlackjack(t *testing.T) {
 			}
 		})
 	}
+
+	// Additional statements should be included
+	fmt.Println("the whole block")
+	fmt.Println("should be returned")
 }
