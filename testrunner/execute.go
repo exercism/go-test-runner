@@ -83,10 +83,12 @@ func getStructure(lines bytes.Buffer, input_dir string, ver int) *testReport {
 	tests = removeObsoleteParentTests(tests)
 
 	for _, test := range tests {
-		if test.Status == statErr {
-			report.Status = statErr
-		}
 		if test.Status == statSkip {
+			// There is no status for skipped tests on the website
+			// so we remove them from the output.
+			continue
+		}
+		if test.Status == statErr {
 			report.Status = statErr
 		}
 		if report.Status == statPass && test.Status == statFail {

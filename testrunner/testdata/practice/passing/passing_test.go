@@ -29,3 +29,9 @@ func TestTrivialPass2(t *testing.T) {
 	}
 	fmt.Println("sample passing test output 2")
 }
+
+
+// Tests skip test
+func TestSkip1(t *testing.T) {
+	t.Skip("skipped test")
+}
