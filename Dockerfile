@@ -1,4 +1,4 @@
-FROM golang:1.15-buster
+FROM golang:1.17-alpine3.14
 
 # add a non-root user to run our code as
 RUN adduser --disabled-password --gecos "" appuser
