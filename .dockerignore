@@ -1,2 +1,3 @@
 bin/run-in-docker.sh
 .appends
+.git
