@@ -4,3 +4,4 @@ bin/run-in-docker.sh
 .github
 .gitignore
 .gitattributes
+.dockerignore
