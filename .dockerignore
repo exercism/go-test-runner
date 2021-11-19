@@ -5,3 +5,4 @@ bin/run-in-docker.sh
 .gitignore
 .gitattributes
 .dockerignore
+Dockerfile
