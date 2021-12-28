@@ -29,9 +29,7 @@ func findTestFile(testName string, codePath string) string {
 	testdef := fmt.Sprintf("func %s", test)
 	for _, f := range files {
 		if strings.HasSuffix(f.Name(), "_test.go") {
-			var code string
 			testpath := filepath.Join(codePath, f.Name())
-			fmt.Scanln(&code)
 			fh, err := ioutil.ReadFile(testpath)
 			if err != nil {
 				log.Printf("warning: test file '%s' read failed: %s", testpath, err)
