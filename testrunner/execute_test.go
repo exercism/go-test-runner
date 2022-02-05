@@ -33,32 +33,6 @@ func TestRunTests_broken(t *testing.T) {
 			t.Errorf("Broken test run - unexpected suffix in line: %s, want: %s", lines[i], expectedSuffix)
 		}
 	}
-
-	output := &testReport{
-		Status:  statErr,
-		Version: 2,
-		Message: res,
-	}
-	btr, err := json.MarshalIndent(output, "", "\t")
-	if err != nil {
-		t.Errorf("Broken test output not valid json: %s", err)
-	}
-	tr := string(btr)
-
-	pre := `{
-	"status": "error",
-	"version": 2,
-	"message": "# gigasecond`
-
-	post := `returned exit code 2: exit status 2",
-	"tests": null
-}`
-	if !strings.HasPrefix(tr, pre) {
-		t.Errorf("Broken test run unexpected json prefix: %s", tr)
-	}
-	if !strings.HasSuffix(tr, post) {
-		t.Errorf("Broken test run unexpected json suffix: %s", tr)
-	}
 }
 
 // TestRunTests_missingFunc covers the case that the test code does not compile,
@@ -86,32 +60,6 @@ func TestRunTests_missingFunc(t *testing.T) {
 			t.Errorf("Missing function test run - unexpected suffix in line: %s, want: %s", lines[i], expectedSuffix)
 		}
 	}
-
-	output := &testReport{
-		Status:  statErr,
-		Version: 2,
-		Message: res,
-	}
-	btr, err := json.MarshalIndent(output, "", "\t")
-	if err != nil {
-		t.Errorf("Missing function test output not valid json: %s", err)
-	}
-	tr := string(btr)
-
-	pre := `{
-	"status": "error",
-	"version": 2,
-	"message": "# gigasecond`
-
-	post := `returned exit code 2: exit status 2",
-	"tests": null
-}`
-	if !strings.HasPrefix(tr, pre) {
-		t.Errorf("Missing function test run unexpected json prefix: %s", tr)
-	}
-	if !strings.HasSuffix(tr, post) {
-		t.Errorf("Missing function test run unexpected json suffix: %s", tr)
-	}
 }
 
 func TestRunTests_brokenImport(t *testing.T) {
@@ -133,32 +81,6 @@ func TestRunTests_brokenImport(t *testing.T) {
 		if !strings.HasSuffix(lines[i], expectedSuffix) {
 			t.Errorf("Broken import test run - unexpected suffix in line: %s, want: %s", lines[i], expectedSuffix)
 		}
-	}
-
-	output := &testReport{
-		Status:  statErr,
-		Version: 2,
-		Message: res,
-	}
-	btr, err := json.MarshalIndent(output, "", "\t")
-	if err != nil {
-		t.Errorf("Broken import test output not valid json: %s", err)
-	}
-	tr := string(btr)
-
-	pre := `{
-	"status": "error",
-	"version": 2,
-	"message":`
-
-	post := `returned exit code 1: exit status 1",
-	"tests": null
-}`
-	if !strings.HasPrefix(tr, pre) {
-		t.Errorf("Broken import test run unexpected json prefix: %s", tr)
-	}
-	if !strings.HasSuffix(tr, post) {
-		t.Errorf("Broken import test run unexpected json suffix: %s", tr)
 	}
 }
 
