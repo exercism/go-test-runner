@@ -162,6 +162,54 @@ func TestRunTests_brokenImport(t *testing.T) {
 	}
 }
 
+func TestRunTests_RuntimeError(t *testing.T) {
+	input_dir := "./testdata/practice/runtime_error"
+	cmdres, ok := runTests(input_dir)
+	if ok {
+		t.Errorf("runtime error test did not fail %s", cmdres.String())
+	}
+
+	// res := cmdres.String()
+	// lines := strings.Split(res, "\n")
+
+	// expectedLineSuffixes := []string{
+	// 	"broken_import.go:5:8: expected ';', found ','",
+	// 	"returned exit code 1: exit status 1",
+	// }
+
+	// for i, expectedSuffix := range expectedLineSuffixes {
+	// 	if !strings.HasSuffix(lines[i], expectedSuffix) {
+	// 		t.Errorf("Broken import test run - unexpected suffix in line: %s, want: %s", lines[i], expectedSuffix)
+	// 	}
+	// }
+
+	// 	output := &testReport{
+	// 		Status:  statErr,
+	// 		Version: 2,
+	// 		Message: res,
+	// 	}
+	// 	btr, err := json.MarshalIndent(output, "", "\t")
+	// 	if err != nil {
+	// 		t.Errorf("Broken import test output not valid json: %s", err)
+	// 	}
+	// 	tr := string(btr)
+
+	// 	pre := `{
+	// 	"status": "error",
+	// 	"version": 2,
+	// 	"message":`
+
+	// 	post := `returned exit code 1: exit status 1",
+	// 	"tests": null
+	// }`
+	// 	if !strings.HasPrefix(tr, pre) {
+	// 		t.Errorf("Broken import test run unexpected json prefix: %s", tr)
+	// 	}
+	// 	if !strings.HasSuffix(tr, post) {
+	// 		t.Errorf("Broken import test run unexpected json suffix: %s", tr)
+	// 	}
+}
+
 func TestRunTests_passing(t *testing.T) {
 	input_dir := "./testdata/practice/passing"
 
