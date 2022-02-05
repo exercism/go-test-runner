@@ -142,7 +142,7 @@ func buildTests(lines bytes.Buffer, input_dir string) ([]testResult, error) {
 			tc := ExtractTestCode(line.Test, tf)
 			result := testResult{
 				Name:   line.Test,
-				Status: statSkip,
+				Status: statErr,
 			}
 			if len(tc) > 0 {
 				result.TestCode = tc
@@ -171,7 +171,15 @@ func buildTests(lines bytes.Buffer, input_dir string) ([]testResult, error) {
 				log.Printf("cannot set passing status for unknown test: %s\n", line.Test)
 				continue
 			}
+		case statSkip:
+			if idx, found := resultIdxByName[line.Test]; found {
+				results[idx].Status = statSkip
+			} else {
+				log.Printf("cannot set skipped status for unknown test: %s\n", line.Test)
+				continue
+			}
 		}
+
 	}
 	if len(failMsg) != 0 {
 		return nil, errors.New(string(bytes.Join(failMsg, []byte{'\n'})))
