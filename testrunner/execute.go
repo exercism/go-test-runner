@@ -141,7 +141,9 @@ func buildTests(lines bytes.Buffer, input_dir string) ([]testResult, error) {
 			}
 			tc := ExtractTestCode(line.Test, tf)
 			result := testResult{
-				Name:   line.Test,
+				Name: line.Test,
+				// Use error as default state in case no other state is found later.
+				// No state is provided e.g. when there is a stack overflow.
 				Status: statErr,
 			}
 			if len(tc) > 0 {
