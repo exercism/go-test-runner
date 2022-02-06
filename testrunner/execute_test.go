@@ -8,6 +8,8 @@ import (
 	"testing"
 )
 
+const version = 2
+
 // TestRunTests_broken covers the case the code under test does not compile,
 // i.e. "go build ." would fail.
 func TestRunTests_broken(t *testing.T) {
@@ -91,7 +93,7 @@ func TestRunTests_RuntimeError(t *testing.T) {
 		fmt.Printf("runtime error test expected to return ok: %s", cmdres.String())
 	}
 
-	output := getStructure(cmdres, input_dir, 2)
+	output := getStructure(cmdres, input_dir, version)
 	jsonBytes, err := json.MarshalIndent(output, "", "\t")
 	if err != nil {
 		t.Fatalf("runtime error output not valid json: %s", err)
@@ -122,7 +124,7 @@ func TestRunTests_passing(t *testing.T) {
 		t.Errorf("Passing test failed: %s", cmdres.String())
 	}
 
-	output := getStructure(cmdres, input_dir, 2)
+	output := getStructure(cmdres, input_dir, version)
 	jsonBytes, err := json.MarshalIndent(output, "", "\t")
 	if err != nil {
 		t.Fatalf("Passing test output not valid json: %s", err)
@@ -146,7 +148,7 @@ func ExampleRunTests_failing() {
 		fmt.Printf("Failing test expected to return ok: %s", cmdres.String())
 	}
 
-	output := getStructure(cmdres, input_dir, 2)
+	output := getStructure(cmdres, input_dir, version)
 	if bts, err := json.MarshalIndent(output, "", "\t"); err != nil {
 		fmt.Printf("Failing test output not valid json: %s", err)
 	} else {
