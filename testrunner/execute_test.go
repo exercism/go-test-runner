@@ -21,10 +21,10 @@ func TestRunTests_broken(t *testing.T) {
 	lines := strings.Split(res, "\n")
 
 	expectedLineSuffixes := []string{
-		"# github.com/exercism/go-test-runner/testrunner/testdata/practice/broken [github.com/exercism/go-test-runner/testrunner/testdata/practice/broken.test]",
+		"# gigasecond [gigasecond.test]",
 		"broken.go:11:2: undefined: unknownVar",
 		"broken.go:12:2: undefined: UnknownFunction",
-		"FAIL	github.com/exercism/go-test-runner/testrunner/testdata/practice/broken [build failed]",
+		"FAIL	gigasecond [build failed]",
 		"returned exit code 2: exit status 2",
 	}
 
@@ -48,7 +48,7 @@ func TestRunTests_broken(t *testing.T) {
 	pre := `{
 	"status": "error",
 	"version": 2,
-	"message": "# github.com/exercism/go-test-runner/testrunner/testdata/practice/broken`
+	"message": "# gigasecond`
 
 	post := `returned exit code 2: exit status 2",
 	"tests": null
@@ -74,10 +74,10 @@ func TestRunTests_missingFunc(t *testing.T) {
 	lines := strings.Split(res, "\n")
 
 	expectedLineSuffixes := []string{
-		"# github.com/exercism/go-test-runner/testrunner/testdata/practice/missing_func [github.com/exercism/go-test-runner/testrunner/testdata/practice/missing_func.test]",
+		"# gigasecond [gigasecond.test]",
 		"missing_func_test.go:39:11: undefined: AddGigasecond",
 		"missing_func_test.go:72:11: undefined: AddGigasecond",
-		"FAIL	github.com/exercism/go-test-runner/testrunner/testdata/practice/missing_func [build failed]",
+		"FAIL	gigasecond [build failed]",
 		"returned exit code 2: exit status 2",
 	}
 
@@ -101,7 +101,7 @@ func TestRunTests_missingFunc(t *testing.T) {
 	pre := `{
 	"status": "error",
 	"version": 2,
-	"message": "# github.com/exercism/go-test-runner/testrunner/testdata/practice/missing_func`
+	"message": "# gigasecond`
 
 	post := `returned exit code 2: exit status 2",
 	"tests": null
