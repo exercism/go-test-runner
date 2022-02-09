@@ -8,6 +8,8 @@ import (
 	"testing"
 )
 
+const version = 2
+
 // TestRunTests_broken covers the case the code under test does not compile,
 // i.e. "go build ." would fail.
 func TestRunTests_broken(t *testing.T) {
@@ -32,32 +34,6 @@ func TestRunTests_broken(t *testing.T) {
 		if !strings.HasSuffix(lines[i], expectedSuffix) {
 			t.Errorf("Broken test run - unexpected suffix in line: %s, want: %s", lines[i], expectedSuffix)
 		}
-	}
-
-	output := &testReport{
-		Status:  statErr,
-		Version: 2,
-		Message: res,
-	}
-	btr, err := json.MarshalIndent(output, "", "\t")
-	if err != nil {
-		t.Errorf("Broken test output not valid json: %s", err)
-	}
-	tr := string(btr)
-
-	pre := `{
-	"status": "error",
-	"version": 2,
-	"message": "# gigasecond`
-
-	post := `returned exit code 2: exit status 2",
-	"tests": null
-}`
-	if !strings.HasPrefix(tr, pre) {
-		t.Errorf("Broken test run unexpected json prefix: %s", tr)
-	}
-	if !strings.HasSuffix(tr, post) {
-		t.Errorf("Broken test run unexpected json suffix: %s", tr)
 	}
 }
 
@@ -86,32 +62,6 @@ func TestRunTests_missingFunc(t *testing.T) {
 			t.Errorf("Missing function test run - unexpected suffix in line: %s, want: %s", lines[i], expectedSuffix)
 		}
 	}
-
-	output := &testReport{
-		Status:  statErr,
-		Version: 2,
-		Message: res,
-	}
-	btr, err := json.MarshalIndent(output, "", "\t")
-	if err != nil {
-		t.Errorf("Missing function test output not valid json: %s", err)
-	}
-	tr := string(btr)
-
-	pre := `{
-	"status": "error",
-	"version": 2,
-	"message": "# gigasecond`
-
-	post := `returned exit code 2: exit status 2",
-	"tests": null
-}`
-	if !strings.HasPrefix(tr, pre) {
-		t.Errorf("Missing function test run unexpected json prefix: %s", tr)
-	}
-	if !strings.HasSuffix(tr, post) {
-		t.Errorf("Missing function test run unexpected json suffix: %s", tr)
-	}
 }
 
 func TestRunTests_brokenImport(t *testing.T) {
@@ -134,31 +84,35 @@ func TestRunTests_brokenImport(t *testing.T) {
 			t.Errorf("Broken import test run - unexpected suffix in line: %s, want: %s", lines[i], expectedSuffix)
 		}
 	}
+}
 
-	output := &testReport{
-		Status:  statErr,
-		Version: 2,
-		Message: res,
+func TestRunTests_RuntimeError(t *testing.T) {
+	input_dir := "./testdata/practice/runtime_error"
+	cmdres, ok := runTests(input_dir)
+	if !ok {
+		fmt.Printf("runtime error test expected to return ok: %s", cmdres.String())
 	}
-	btr, err := json.MarshalIndent(output, "", "\t")
+
+	output := getStructure(cmdres, input_dir, version)
+	jsonBytes, err := json.MarshalIndent(output, "", "\t")
 	if err != nil {
-		t.Errorf("Broken import test output not valid json: %s", err)
+		t.Fatalf("runtime error output not valid json: %s", err)
 	}
-	tr := string(btr)
+
+	result := string(jsonBytes)
 
 	pre := `{
 	"status": "error",
 	"version": 2,
-	"message":`
+	"tests": [
+		{
+			"name": "TestAddGigasecond",
+			"status": "error",
+			"test_code": "func TestAddGigasecond(t *testing.T) {\n\tinput, _ := time.Parse(\"2006-01-02\", \"2011-04-25\")\n\tAddGigasecond(input)\n}",
+			"message": "\n=== RUN   TestAddGigasecond\n\nruntime: goroutine stack exceeds`
 
-	post := `returned exit code 1: exit status 1",
-	"tests": null
-}`
-	if !strings.HasPrefix(tr, pre) {
-		t.Errorf("Broken import test run unexpected json prefix: %s", tr)
-	}
-	if !strings.HasSuffix(tr, post) {
-		t.Errorf("Broken import test run unexpected json suffix: %s", tr)
+	if !strings.HasPrefix(result, pre) {
+		t.Errorf("Broken import test run unexpected json prefix: %s", result)
 	}
 }
 
@@ -170,7 +124,7 @@ func TestRunTests_passing(t *testing.T) {
 		t.Errorf("Passing test failed: %s", cmdres.String())
 	}
 
-	output := getStructure(cmdres, input_dir, 2)
+	output := getStructure(cmdres, input_dir, version)
 	jsonBytes, err := json.MarshalIndent(output, "", "\t")
 	if err != nil {
 		t.Fatalf("Passing test output not valid json: %s", err)
@@ -194,7 +148,7 @@ func ExampleRunTests_failing() {
 		fmt.Printf("Failing test expected to return ok: %s", cmdres.String())
 	}
 
-	output := getStructure(cmdres, input_dir, 2)
+	output := getStructure(cmdres, input_dir, version)
 	if bts, err := json.MarshalIndent(output, "", "\t"); err != nil {
 		fmt.Printf("Failing test output not valid json: %s", err)
 	} else {
