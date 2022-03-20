@@ -136,3 +136,22 @@ if got := ParseCard(tt.card); got != tt.want {
   t.Errorf("ParseCard(%s) = %d, want %d", tt.card, got, tt.want)
 }
 ```
+
+## Providing Additional Testing Flags
+
+Exercises can supply additional flags that will be included when the test runner executes the `go test` command.
+This is done via the `.meta/config.json` file of the exercise. See example below.
+
+```json
+{
+  // ...
+  "custom": {
+    "testingFlags": [
+      "-race"
+    ]
+  }
+}
+```
+
+Currently, only the flag `-race` is supported.
+If more flags should be allowed in the future, they first need to be added to the `allowedTestingFlags` list in `testrunner/execute.go`.
