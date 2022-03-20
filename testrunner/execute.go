@@ -192,7 +192,7 @@ func buildTests(lines bytes.Buffer, input_dir string) ([]testResult, error) {
 		return nil, errors.New(string(bytes.Join(failMsg, []byte{'\n'})))
 	}
 
-	if len(results) == 0 {
+	if len(results) == 0 && pkgLevelMsg != "" {
 		return nil, errors.New(pkgLevelMsg)
 	}
 
