@@ -1,5 +1,8 @@
 FROM golang:1.17-alpine3.14
 
+# add addtional packages needed for the race detector to work
+RUN apk add --update build-base make 
+
 # add a non-root user to run our code as
 RUN adduser --disabled-password --gecos "" appuser
 
