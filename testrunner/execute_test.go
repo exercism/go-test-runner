@@ -112,7 +112,7 @@ func TestRunTests_RuntimeError(t *testing.T) {
 			"message": "\n=== RUN   TestAddGigasecond\n\nruntime: goroutine stack exceeds`
 
 	if !strings.HasPrefix(result, pre) {
-		t.Errorf("Broken import test run unexpected json prefix: %s", result)
+		t.Errorf("runtime error result has unexpected json prefix: %s", result)
 	}
 }
 
@@ -154,6 +154,31 @@ func TestRunTests_passing(t *testing.T) {
 
 	if string(jsonBytes) != string(expectedOutput) {
 		t.Errorf("Passing test failed, got:\n%s\n, want:\n%s\n", string(jsonBytes), string(expectedOutput))
+	}
+}
+
+func TestRunTests_PkgLevelError(t *testing.T) {
+	input_dir := "./testdata/practice/pkg_level_error"
+	cmdres, ok := runTests(input_dir)
+	if !ok {
+		fmt.Printf("pkg level error test expected to return ok: %s", cmdres.String())
+	}
+
+	output := getStructure(cmdres, input_dir, version)
+	jsonBytes, err := json.MarshalIndent(output, "", "\t")
+	if err != nil {
+		t.Fatalf("pkg level error output not valid json: %s", err)
+	}
+
+	result := string(jsonBytes)
+
+	pre := `{
+	"status": "error",
+	"version": 2,
+	"message": "panic: Please implement this function`
+
+	if !strings.HasPrefix(result, pre) {
+		t.Errorf("pkg level error result has unexpected json prefix: %s", result)
 	}
 }
 
