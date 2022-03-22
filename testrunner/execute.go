@@ -107,6 +107,7 @@ func buildTests(lines bytes.Buffer, input_dir string) ([]testResult, error) {
 		resultIdxByName = make(map[string]int)
 		testFileMap     = make(map[string]string)
 		failMsg         [][]byte
+		pkgLevelMsg     string
 	)
 
 	scanner := bufio.NewScanner(&lines)
@@ -129,6 +130,9 @@ func buildTests(lines bytes.Buffer, input_dir string) ([]testResult, error) {
 		}
 
 		if line.Test == "" {
+			// We collect messages that do not belong to an individual test and use them later
+			// as error message in case there was no test level messsage found at all.
+			pkgLevelMsg += line.Output
 			continue
 		}
 
@@ -183,9 +187,15 @@ func buildTests(lines bytes.Buffer, input_dir string) ([]testResult, error) {
 		}
 
 	}
+
 	if len(failMsg) != 0 {
 		return nil, errors.New(string(bytes.Join(failMsg, []byte{'\n'})))
 	}
+
+	if len(results) == 0 && pkgLevelMsg != "" {
+		return nil, errors.New(pkgLevelMsg)
+	}
+
 	return results, nil
 }
 
