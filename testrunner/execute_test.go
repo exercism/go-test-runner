@@ -116,6 +116,23 @@ func TestRunTests_RuntimeError(t *testing.T) {
 	}
 }
 
+func TestRunTests_RaceDetector(t *testing.T) {
+	input_dir := "./testdata/practice/race"
+	cmdres, ok := runTests(input_dir)
+	if !ok {
+		fmt.Printf("race detector test expected to return ok: %s", cmdres.String())
+	}
+
+	output := getStructure(cmdres, input_dir, version)
+	if output.Status != "fail" {
+		t.Errorf("wrong status for race detector test: got %q, want %q", output.Status, "fail")
+	}
+
+	if !strings.Contains(output.Tests[0].Message, "WARNING: DATA RACE") {
+		t.Errorf("no data race error included in message: %s", output.Tests[0].Message)
+	}
+}
+
 func TestRunTests_passing(t *testing.T) {
 	input_dir := "./testdata/practice/passing"
 

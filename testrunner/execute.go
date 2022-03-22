@@ -7,7 +7,9 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"os"
 	"os/exec"
+	"path/filepath"
 	"time"
 )
 
@@ -17,6 +19,9 @@ const (
 	statSkip = "skip"
 	statErr  = "error"
 )
+
+// For security reasons, only testing flags that are included in the list below are processed.
+var allowedTestingFlags = []string{"-race"}
 
 type testResult struct {
 	Name     string `json:"name"`
@@ -272,11 +277,16 @@ func runTests(input_dir string) (bytes.Buffer, bool) {
 		log.Fatal("failed to find go executable: ", err)
 	}
 
+	additionalTestFlags := findAdditionalTestFlags(input_dir)
+	testCommand := []string{goExe, "test", "--short", "--json"}
+	testCommand = append(testCommand, additionalTestFlags...)
+	testCommand = append(testCommand, ".")
+
 	var stdout, stderr bytes.Buffer
 	testCmd := &exec.Cmd{
 		Dir:    input_dir,
 		Path:   goExe,
-		Args:   []string{goExe, "test", "--short", "--json", "."},
+		Args:   testCommand,
 		Stdout: &stdout,
 		Stderr: &stderr,
 	}
@@ -316,4 +326,52 @@ func runTests(input_dir string) (bytes.Buffer, bool) {
 		)
 	}
 	return stdout, false
+}
+
+type config struct {
+	Custom struct {
+		TestingFlags []string `json:"testingFlags"`
+	} `json:"custom"`
+}
+
+func findAdditionalTestFlags(input_dir string) []string {
+	configContent, err := os.ReadFile(filepath.Join(input_dir, ".meta", "config.json"))
+	if err != nil {
+		log.Printf("failed to read config.json: %v", err)
+		return nil
+	}
+
+	cfg := &config{}
+	err = json.Unmarshal(configContent, cfg)
+	if err != nil {
+		log.Printf("failed to parse config.json: %v", err)
+		return nil
+	}
+
+	if len(cfg.Custom.TestingFlags) == 0 {
+		return nil
+	}
+
+	return validateTestingFlags(cfg.Custom.TestingFlags)
+}
+
+func validateTestingFlags(flags []string) []string {
+	validFlags := []string{}
+	for _, flag := range flags {
+		if contains(allowedTestingFlags, flag) {
+			validFlags = append(validFlags, flag)
+		} else {
+			log.Printf("invalid testing flag found in config.json: %s", flag)
+		}
+	}
+	return validFlags
+}
+
+func contains(list []string, target string) bool {
+	for _, item := range list {
+		if item == target {
+			return true
+		}
+	}
+	return false
 }

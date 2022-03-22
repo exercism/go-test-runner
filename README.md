@@ -51,13 +51,13 @@ docker build -t exercism/go-test-runner .
 Run the test runner in the container by passing in the slug name, and absolute paths to the exercise (solution) and a writeable tmp directory. These directories should be mounted as volumes:
 
 ```bash
-docker run --network none --read-only -v $(pwd)/testdata/practice/gigasecond:/solution -v /tmp:/tmp exercism/go-test-runner gigasecond /solution /tmp
+docker run --network none --read-only -v $(pwd)/testrunner/testdata/practice/gigasecond:/solution -v /tmp:/tmp exercism/go-test-runner gigasecond /solution /tmp
 ```
 
 For troubleshooting / debug you can name the container, run it in interactive mode, and detach from it using:
 
 ```bash
-docker run --name exercism-go-test-runner -d -i --network none --read-only -v $(pwd)/testdata/practice/gigasecond:/solution -v /tmp:/tmp exercism/go-test-runner gigasecond /solution /tmp
+docker run --name exercism-go-test-runner -d -i --network none --read-only -v $(pwd)/testrunner/testdata/practice/gigasecond:/solution -v /tmp:/tmp exercism/go-test-runner gigasecond /solution /tmp
 # You can then access the container as follows:
 docker exec -it --user appuser $(docker ps -q --filter name=exercism-go-test-runner) /bin/sh
 ```
@@ -136,3 +136,22 @@ if got := ParseCard(tt.card); got != tt.want {
   t.Errorf("ParseCard(%s) = %d, want %d", tt.card, got, tt.want)
 }
 ```
+
+## Providing Additional Testing Flags
+
+Exercises can supply additional flags that will be included when the test runner executes the `go test` command.
+This is done via the `.meta/config.json` file of the exercise. See example below.
+
+```json
+{
+  // ...
+  "custom": {
+    "testingFlags": [
+      "-race"
+    ]
+  }
+}
+```
+
+Currently, only the flag `-race` is supported.
+If more flags should be allowed in the future, they first need to be added to the `allowedTestingFlags` list in `testrunner/execute.go`.
