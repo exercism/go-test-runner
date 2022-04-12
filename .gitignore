@@ -4,6 +4,7 @@
 bin/*
 log/*
 .ipynb_checkpoints/
+.idea
 
 # Test binary, build with `go test -c`
 *.test
