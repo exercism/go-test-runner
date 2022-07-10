@@ -8,11 +8,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: Install Go
-      uses: actions/setup-go@v3
+      uses: actions/setup-go@b22fbbc2921299758641fab08929b4ac52b32923
       with:
         go-version: 1.18.x
     - name: Checkout code
-      uses: actions/checkout@v3
+      uses: actions/checkout@2541b1294d2704b0964813337f33b291d3f8596b
     - name: Run linters
       uses: golangci/golangci-lint-action@v3
       with:
@@ -28,11 +28,11 @@ jobs:
     steps:
     - name: Install Go
       if: success()
-      uses: actions/setup-go@v3
+      uses: actions/setup-go@b22fbbc2921299758641fab08929b4ac52b32923
       with:
         go-version: ${{ matrix.go-version }}
     - name: Checkout code
-      uses: actions/checkout@v3
+      uses: actions/checkout@2541b1294d2704b0964813337f33b291d3f8596b
     - name: Run tests
       run: go test ./... -v -covermode=count
 
@@ -41,18 +41,18 @@ jobs:
     steps:
     - name: Install Go
       if: success()
-      uses: actions/setup-go@v3
+      uses: actions/setup-go@b22fbbc2921299758641fab08929b4ac52b32923
       with:
         go-version: 1.18.x
     - name: Checkout code
-      uses: actions/checkout@v3
+      uses: actions/checkout@2541b1294d2704b0964813337f33b291d3f8596b
     - name: Calc coverage
       run: |
         go test ./... -v -covermode=count -coverprofile=coverage.out
     - name: Convert coverage.out to coverage.lcov
-      uses: jandelgado/gcov2lcov-action@v1.0.9
+      uses: jandelgado/gcov2lcov-action@c680c0f7c7442485f1749eb2a13e54a686e76eb5
     - name: Coveralls
-      uses: coverallsapp/github-action@1.1.3
+      uses: coverallsapp/github-action@9ba913c152ae4be1327bfb9085dc806cedb44057
       with:
           github-token: ${{ secrets.github_token }}
           path-to-lcov: coverage.lcov
