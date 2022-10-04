@@ -94,7 +94,10 @@ func getStructure(lines bytes.Buffer, input_dir string, ver int) *testReport {
 			continue
 		}
 		if test.Status == statErr {
-			report.Status = statErr
+			// If only one test has an error, the overall report should
+			// only say "fail". Report level "error" is only for cases
+			// when we don't have any test level results.
+			report.Status = statFail
 		}
 		if report.Status == statPass && test.Status == statFail {
 			report.Status = statFail
@@ -337,7 +340,7 @@ type config struct {
 func findAdditionalTestFlags(input_dir string) []string {
 	configContent, err := os.ReadFile(filepath.Join(input_dir, ".meta", "config.json"))
 	if err != nil {
-		log.Printf("failed to read config.json: %v", err)
+		log.Printf("warning: config.json could not be read: %v", err)
 		return nil
 	}
 

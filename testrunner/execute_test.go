@@ -102,7 +102,7 @@ func TestRunTests_RuntimeError(t *testing.T) {
 	result := string(jsonBytes)
 
 	pre := `{
-	"status": "error",
+	"status": "fail",
 	"version": 2,
 	"tests": [
 		{
