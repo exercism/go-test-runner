@@ -105,6 +105,7 @@ func TestExtractTestCode(t *testing.T) {
 	if got := ParseCard(tt.card); got != tt.want {
 		t.Errorf("ParseCard(%s) = %d, want %d", tt.card, got, tt.want)
 	}
+
 }`,
 		}, {
 			name:     "working subtest",
@@ -116,7 +117,6 @@ func TestExtractTestCode(t *testing.T) {
 		card string
 		want int
 	}{
-	
 		name: "parse jack",
 		card: "jack",
 		want: 10,
@@ -134,6 +134,7 @@ func TestExtractTestCode(t *testing.T) {
 			code: `func TestBlackjack(t *testing.T) {
 	someAssignment := "test"
 	fmt.Println(someAssignment)
+
 	type hand struct {
 		card1, card2 string
 	}
@@ -198,11 +199,23 @@ func TestExtractTestCode(t *testing.T) {
 			// whitespace / tabs were difficult to match between the test files
 			// and the test code / strings... so strip them
 			code := ExtractTestCode(tt.testName, tt.testFile)
+
+			loc := len(strings.Split(code, "\n"))
+			ttloc := len(strings.Split(tt.code, "\n"))
+
 			code = strings.Join(strings.Fields(code), " ")
 			ttcode := strings.Join(strings.Fields(tt.code), " ")
 			if code != ttcode {
 				t.Errorf("ExtractTestCode(%v, %v) = \n%v\n; want \n%v",
 					tt.testName, tt.testFile, code, ttcode)
+			}
+
+			// check that extracted code has the expected number of lines.
+			// makes sure there's no redundant empty line in test data anonymous struct
+			// github/issues#79
+			if loc != ttloc {
+				t.Errorf("ExtractTestCode(%v, %v)\n has %v lines; want %v lines",
+					tt.testName, tt.testFile, loc, ttloc)
 			}
 		})
 	}

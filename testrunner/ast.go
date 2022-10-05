@@ -17,7 +17,7 @@ type subTData struct {
 	subTKey    string     // subtest name key
 	origTDName string     // original test data []struct name
 	newTDName  string     // new test data struct name
-	TD         []ast.Expr // original test data node
+	TD         *ast.CompositeLit // original test data node
 	subTest    ast.Stmt   // Run() function literal node
 }
 
@@ -89,9 +89,7 @@ func getSubCode(test string, sub string, code string, file string) string {
 	// rename the test data to match the variable assigned in the range stmt
 	lhs1.Name = metadata.newTDName
 	// assign the subtest data to the new test data variable
-	rhs1.Elts = metadata.TD
-	// re-assign the type from an array to the underlying test data struct
-	rhs1.Type = rhs1.Type.(*ast.ArrayType).Elt
+	*rhs1 = *metadata.TD
 
 	// swap the original range statement for the extracted subtest
 	fbAST[astInfo.rangeAstIdx] = metadata.subTest
@@ -187,7 +185,9 @@ func processTestDataAssgn(sub string, assgn *ast.AssignStmt) (*subTData, bool) {
 			if strconv.Quote(sub) == value.Value || altsub == value.Value {
 				metadata.subTKey = kv.Key.(*ast.Ident).Name // subtest data "name"
 				// TD is the "parent" array of KeyValueExprs
-				metadata.TD = vals.Elts // test data element for the requested subtest
+				metadata.TD = vals // test data element for the requested subtest
+				// re-assign the type from an array to the underlying test data struct
+				metadata.TD.Type = rhs1.Type.(*ast.ArrayType).Elt
 				return &metadata, true
 			}
 		}
