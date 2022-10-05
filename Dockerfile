@@ -9,7 +9,12 @@ RUN adduser --disabled-password --gecos "" appuser
 WORKDIR /opt/test-runner
 COPY . .
 
+# Install extra packages
+WORKDIR /opt/test-runner/extra-packages
+RUN ./install_dependencies.sh
+
 # Build the test runner
+WORKDIR /opt/test-runner
 RUN GOOS=linux GOARCH=amd64 go build -o /opt/test-runner/bin/test-runner /opt/test-runner
 
 USER appuser

@@ -62,6 +62,13 @@ docker run --name exercism-go-test-runner -d -i --network none --read-only -v $(
 docker exec -it --user appuser $(docker ps -q --filter name=exercism-go-test-runner) /bin/sh
 ```
 
+### Extra Go packages
+
+Some extra Go packages are downloaded when the docker image is built.
+This allows students to use these extra packages in their solutions.
+
+The list of extra packages is in `extra-packages/packages.txt`.
+Edit this file to add or remove packages that will be built into the docker image.
 
 ## Subtests
 
