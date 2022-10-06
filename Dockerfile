@@ -9,6 +9,10 @@ RUN adduser --disabled-password --gecos "" appuser
 WORKDIR /opt/test-runner
 COPY . .
 
+# Download all dependencies.
+# We want some more than what is needed in the build below.
+RUN go mod download
+
 # Build the test runner
 RUN GOOS=linux GOARCH=amd64 go build -o /opt/test-runner/bin/test-runner /opt/test-runner
 
