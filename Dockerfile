@@ -11,7 +11,7 @@ COPY . .
 
 # Install extra packages
 WORKDIR /opt/test-runner/extra-packages
-RUN ./install_dependencies.sh
+RUN go mod download
 
 # Build the test runner
 WORKDIR /opt/test-runner

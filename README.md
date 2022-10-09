@@ -67,8 +67,13 @@ docker exec -it --user appuser $(docker ps -q --filter name=exercism-go-test-run
 Some extra Go packages are downloaded when the docker image is built.
 This allows students to use these extra packages in their solutions.
 
-The list of extra packages is in `extra-packages/packages.txt`.
-Edit this file to add or remove packages that will be built into the docker image.
+The list of extra packages and their versions is in `extra-packages/go.mod`.
+
+To add or remove a package from the list of extra packages supported:
+
+1. Add/remove the corresponding import from `extra-packages/deps.go`
+2. Run `go mod tidy` inside the `extra-packages` directory
+3. Commit `deps.go` along with the changes to `go.mod` and `go.sum` produced by `go mod tidy`.
 
 ## Subtests
 
