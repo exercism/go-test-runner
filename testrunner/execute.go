@@ -10,7 +10,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
-	"regexp"
+	"strings"
 	"time"
 )
 
@@ -233,10 +233,10 @@ func removeObsoleteParentTests(tests []testResult) []testResult {
 }
 
 func formatTestNames(tests []testResult) []testResult {
-	var out []testResult
+	out := make([]testResult, 0, len(tests))
+	replacer := strings.NewReplacer("/", "/ ", "_", " ")
 	for _, test := range tests {
-		re := regexp.MustCompile("[/_]")
-		test.Name = re.ReplaceAllString(test.Name, " ")
+		test.Name = replacer.Replace(test.Name)
 		out = append(out, test)
 	}
 	return out

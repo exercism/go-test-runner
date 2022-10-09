@@ -3,13 +3,13 @@
 	"version": 2,
 	"tests": [
 		{
-			"name": "TestTrivialPass1 subtest 1.1",
+			"name": "TestTrivialPass1/ subtest 1.1",
 			"status": "pass",
 			"test_code": "// Trivial passing test example 1\nfunc TestTrivialPass1(t *testing.T) {\n\tt.Run(\"subtest 1.1\", func(t *testing.T) {\n\t\tif true != true {\n\t\t\tt.Fatal(\"Should never happen!\")\n\t\t}\n\t\tfmt.Println(\"sample passing subtest output 1.1\")\n\t})\n\n\tt.Run(\"subtest 1.2\", func(t *testing.T) {\n\t\tif true != true {\n\t\t\tt.Fatal(\"Should never happen!\")\n\t\t}\n\t\tfmt.Println(\"sample passing subtest output 1.2\")\n\t})\n}",
 			"message": "\n=== RUN   TestTrivialPass1/subtest_1.1\n\nsample passing subtest output 1.1\n\n    --- PASS: TestTrivialPass1/subtest_1.1 (0.00s)\n"
 		},
 		{
-			"name": "TestTrivialPass1 subtest 1.2",
+			"name": "TestTrivialPass1/ subtest 1.2",
 			"status": "pass",
 			"test_code": "// Trivial passing test example 1\nfunc TestTrivialPass1(t *testing.T) {\n\tt.Run(\"subtest 1.1\", func(t *testing.T) {\n\t\tif true != true {\n\t\t\tt.Fatal(\"Should never happen!\")\n\t\t}\n\t\tfmt.Println(\"sample passing subtest output 1.1\")\n\t})\n\n\tt.Run(\"subtest 1.2\", func(t *testing.T) {\n\t\tif true != true {\n\t\t\tt.Fatal(\"Should never happen!\")\n\t\t}\n\t\tfmt.Println(\"sample passing subtest output 1.2\")\n\t})\n}",
 			"message": "\n=== RUN   TestTrivialPass1/subtest_1.2\n\nsample passing subtest output 1.2\n\n    --- PASS: TestTrivialPass1/subtest_1.2 (0.00s)\n"
