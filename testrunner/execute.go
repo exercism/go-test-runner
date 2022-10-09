@@ -10,6 +10,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"regexp"
 	"time"
 )
 
@@ -86,6 +87,7 @@ func getStructure(lines bytes.Buffer, input_dir string, ver int) *testReport {
 	}
 
 	tests = removeObsoleteParentTests(tests)
+	tests = formatTestNames(tests)
 
 	for _, test := range tests {
 		if test.Status == statSkip {
@@ -228,6 +230,16 @@ func removeObsoleteParentTests(tests []testResult) []testResult {
 	}
 
 	return results
+}
+
+func formatTestNames(tests []testResult) []testResult {
+	var out []testResult
+	for _, test := range tests {
+		re := regexp.MustCompile("[/_]")
+		test.Name = re.ReplaceAllString(test.Name, " ")
+		out = append(out, test)
+	}
+	return out
 }
 
 // codeCompiles runs "go build ." and return whether it worked or not
