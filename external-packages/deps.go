@@ -1,4 +1,4 @@
-package extra_packages
+package external_packages
 
 // This file imports the dependencies we want to support on the Go track.
 // To add or remove a supported dependency, add or remove an import here

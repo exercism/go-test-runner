@@ -62,17 +62,17 @@ docker run --name exercism-go-test-runner -d -i --network none --read-only -v $(
 docker exec -it --user appuser $(docker ps -q --filter name=exercism-go-test-runner) /bin/sh
 ```
 
-### Extra Go packages
+### External Go packages
 
-Some extra Go packages are downloaded when the docker image is built.
-This allows students to use these extra packages in their solutions.
+Some extra Go packages that are not part of the standard library are downloaded when the docker image is built.
+This allows students to use these external packages in their solutions.
 
-The list of extra packages and their versions is in `extra-packages/go.mod`.
+The list of external packages and their versions is in `external-packages/go.mod`.
 
-To add or remove a package from the list of extra packages supported:
+To add or remove a package from the list of external packages supported:
 
-1. Add/remove the corresponding import from `extra-packages/deps.go`
-2. Run `go mod tidy` inside the `extra-packages` directory
+1. Add/remove the corresponding import from `external-packages/deps.go`
+2. Run `go mod tidy` inside the `external-packages` directory
 3. Commit `deps.go` along with the changes to `go.mod` and `go.sum` produced by `go mod tidy`.
 
 ## Subtests

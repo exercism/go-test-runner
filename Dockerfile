@@ -9,8 +9,8 @@ RUN adduser --disabled-password --gecos "" appuser
 WORKDIR /opt/test-runner
 COPY . .
 
-# Install extra packages
-WORKDIR /opt/test-runner/extra-packages
+# Install external packages
+WORKDIR /opt/test-runner/external-packages
 RUN go mod download
 
 # Build the test runner

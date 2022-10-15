@@ -1,4 +1,4 @@
-module extra_packages
+module external_packages
 
 go 1.18
 
