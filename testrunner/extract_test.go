@@ -196,26 +196,30 @@ func TestExtractTestCode(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			// whitespace / tabs were difficult to match between the test files
-			// and the test code / strings... so strip them
 			code := ExtractTestCode(tt.testName, tt.testFile)
 
-			loc := len(strings.Split(code, "\n"))
-			ttloc := len(strings.Split(tt.code, "\n"))
+			actualLines := strings.Split(code, "\n")
+			expectedLines := strings.Split(tt.code, "\n")
 
-			code = strings.Join(strings.Fields(code), " ")
-			ttcode := strings.Join(strings.Fields(tt.code), " ")
-			if code != ttcode {
-				t.Errorf("ExtractTestCode(%v, %v) = \n%v\n; want \n%v",
-					tt.testName, tt.testFile, code, ttcode)
+			if len(actualLines) != len(expectedLines) {
+				t.Errorf("ExtractTestCode(%v, %v)\n has %v lines\n; want %v lines",
+					tt.testName, tt.testFile, len(actualLines), len(expectedLines))
 			}
 
-			// check that extracted code has the expected number of lines.
-			// makes sure there's no redundant empty line in test data anonymous struct
-			// github/issues#79
-			if loc != ttloc {
-				t.Errorf("ExtractTestCode(%v, %v)\n has %v lines; want %v lines",
-					tt.testName, tt.testFile, loc, ttloc)
+			for i, actual := range actualLines {
+				expected := expectedLines[i]
+				// whitespace / tabs were difficult to match between the test files
+				// and the test code / strings... so strip them
+				actual = strings.Join(strings.Fields(actual), " ")
+				expected = strings.Join(strings.Fields(expected), " ")
+
+				if actual != expected {
+					t.Errorf("ExtractTestCode(%v, %v) = \n%v\n; want\n%v\n"+
+						"; differ on line: %v\n; have: `%v`\n; want: `%v`",
+						tt.testName, tt.testFile, code, tt.code,
+						i+1, actualLines[i], expectedLines[i])
+					break
+				}
 			}
 		})
 	}
