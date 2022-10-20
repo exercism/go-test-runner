@@ -106,7 +106,8 @@ func TestBlackjack(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := IsBlackjack(tt.hand.card1, tt.hand.card2); got != tt.want {
+			got := IsBlackjack(tt.hand.card1, tt.hand.card2)
+			if got != tt.want {
 				t.Errorf("IsBlackjack(%s, %s) = %t, want %t", tt.hand.card1, tt.hand.card2, got, tt.want)
 			}
 		})
