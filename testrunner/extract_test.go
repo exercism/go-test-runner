@@ -128,7 +128,7 @@ func TestExtractTestCode(t *testing.T) {
 
 }`,
 		}, {
-			name:     "subtest with additional code above and below test data",
+			name:     "subtest with additional code above and below test data, and multiple statements inside Run()",
 			testName: "TestBlackjack/blackjack_with_ten_(ace_first)",
 			testFile: tf,
 			code: `func TestBlackjack(t *testing.T) {
@@ -150,7 +150,8 @@ func TestExtractTestCode(t *testing.T) {
 
 	_ = "literally anything"
 	
-	if got := IsBlackjack(tt.hand.card1, tt.hand.card2); got != tt.want {
+	got := IsBlackjack(tt.hand.card1, tt.hand.card2)
+	if got != tt.want {
 		t.Errorf("IsBlackjack(%s, %s) = %t, want %t", tt.hand.card1, tt.hand.card2, got, tt.want)
 	}
 

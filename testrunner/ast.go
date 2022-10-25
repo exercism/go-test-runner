@@ -14,11 +14,11 @@ import (
 )
 
 type subTData struct {
-	subTKey    string     // subtest name key
-	origTDName string     // original test data []struct name
-	newTDName  string     // new test data struct name
+	subTKey    string            // subtest name key
+	origTDName string            // original test data []struct name
+	newTDName  string            // new test data struct name
 	TD         *ast.CompositeLit // original test data node
-	subTest    ast.Stmt   // Run() function literal node
+	subTest    []ast.Stmt        // statements comprising the body of Run() function node
 }
 
 type subTestAstInfo struct {
@@ -64,6 +64,7 @@ func getSubCode(test string, sub string, code string, file string) string {
 		log.Println("warning: first subtest declaration must be a function")
 		return ""
 	}
+
 	fbAST := fAST.Body.List // f.Decls[0].Body.List
 
 	astInfo, err := findTestDataAndRange(fbAST)
@@ -91,8 +92,8 @@ func getSubCode(test string, sub string, code string, file string) string {
 	// assign the subtest data to the new test data variable
 	*rhs1 = *metadata.TD
 
-	// swap the original range statement for the extracted subtest
-	fbAST[astInfo.rangeAstIdx] = metadata.subTest
+	// splice the statements of the extracted subtest in place of the original `for...range` statement
+	fAST.Body.List = append(fbAST[:astInfo.rangeAstIdx], append(metadata.subTest, fbAST[astInfo.rangeAstIdx+1:]...)...)
 
 	var buf bytes.Buffer
 	if err := format.Node(&buf, fset, f); err != nil {
@@ -239,7 +240,7 @@ func processRange(metadata *subTData, rastmt *ast.RangeStmt) bool {
 		return false
 	}
 
-	body := runfunclit.(*ast.FuncLit).Body.List[0]
+	body := runfunclit.(*ast.FuncLit).Body.List
 	metadata.subTest = body
 	return true
 }
