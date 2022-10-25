@@ -232,6 +232,9 @@ func removeObsoleteParentTests(tests []testResult) []testResult {
 	return results
 }
 
+// formatTestNames makes sure the test names contain spaces so that
+// line breaks are possible on the website. With that, the test names
+// are readable even if the sidebar with the test results is narrow.
 func formatTestNames(tests []testResult) []testResult {
 	out := make([]testResult, 0, len(tests))
 	replacer := strings.NewReplacer("/", "/ ", "_", " ")
