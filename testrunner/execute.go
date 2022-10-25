@@ -10,6 +10,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strings"
 	"time"
 )
 
@@ -86,6 +87,7 @@ func getStructure(lines bytes.Buffer, input_dir string, ver int) *testReport {
 	}
 
 	tests = removeObsoleteParentTests(tests)
+	tests = formatTestNames(tests)
 
 	for _, test := range tests {
 		if test.Status == statSkip {
@@ -228,6 +230,19 @@ func removeObsoleteParentTests(tests []testResult) []testResult {
 	}
 
 	return results
+}
+
+// formatTestNames makes sure the test names contain spaces so that
+// line breaks are possible on the website. With that, the test names
+// are readable even if the sidebar with the test results is narrow.
+func formatTestNames(tests []testResult) []testResult {
+	out := make([]testResult, 0, len(tests))
+	replacer := strings.NewReplacer("/", "/ ", "_", " ")
+	for _, test := range tests {
+		test.Name = replacer.Replace(test.Name)
+		out = append(out, test)
+	}
+	return out
 }
 
 // codeCompiles runs "go build ." and return whether it worked or not
