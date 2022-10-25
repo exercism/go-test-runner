@@ -105,6 +105,7 @@ func TestExtractTestCode(t *testing.T) {
 	if got := ParseCard(tt.card); got != tt.want {
 		t.Errorf("ParseCard(%s) = %d, want %d", tt.card, got, tt.want)
 	}
+
 }`,
 		}, {
 			name:     "working subtest",
@@ -116,7 +117,6 @@ func TestExtractTestCode(t *testing.T) {
 		card string
 		want int
 	}{
-	
 		name: "parse jack",
 		card: "jack",
 		want: 10,
@@ -134,6 +134,7 @@ func TestExtractTestCode(t *testing.T) {
 			code: `func TestBlackjack(t *testing.T) {
 	someAssignment := "test"
 	fmt.Println(someAssignment)
+
 	type hand struct {
 		card1, card2 string
 	}
@@ -196,14 +197,30 @@ func TestExtractTestCode(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			// whitespace / tabs were difficult to match between the test files
-			// and the test code / strings... so strip them
 			code := ExtractTestCode(tt.testName, tt.testFile)
-			code = strings.Join(strings.Fields(code), " ")
-			ttcode := strings.Join(strings.Fields(tt.code), " ")
-			if code != ttcode {
-				t.Errorf("ExtractTestCode(%v, %v) = \n%v\n; want \n%v",
-					tt.testName, tt.testFile, code, ttcode)
+
+			actualLines := strings.Split(code, "\n")
+			expectedLines := strings.Split(tt.code, "\n")
+
+			if len(actualLines) != len(expectedLines) {
+				t.Errorf("ExtractTestCode(%v, %v)\n has %v lines\n; want %v lines",
+					tt.testName, tt.testFile, len(actualLines), len(expectedLines))
+			}
+
+			for i, actual := range actualLines {
+				expected := expectedLines[i]
+				// whitespace / tabs were difficult to match between the test files
+				// and the test code / strings... so strip them
+				actual = strings.Join(strings.Fields(actual), " ")
+				expected = strings.Join(strings.Fields(expected), " ")
+
+				if actual != expected {
+					t.Errorf("ExtractTestCode(%v, %v) = \n%v\n; want\n%v\n"+
+						"; differ on line: %v\n; have: `%v`\n; want: `%v`",
+						tt.testName, tt.testFile, code, tt.code,
+						i+1, actualLines[i], expectedLines[i])
+					break
+				}
 			}
 		})
 	}
