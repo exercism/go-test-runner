@@ -75,6 +75,10 @@ To add or remove a package from the list of external packages supported:
 2. Run `go mod tidy` inside the `external-packages` directory
 3. Commit `deps.go` along with the changes to `go.mod` and `go.sum` produced by `go mod tidy`.
 
+Note: The Go version declared in the `go.mod` file of the `external-packages` module should be the same as the version in the `go.mod` file of the exercises students download.
+This is because the Go version in the `go.mod` file affects the indirect dependencies that are downloaded, and consequently the `go.sum` file that is generated.
+A student can have a `go.mod` file declaring only supported dependencies, but if the Go version in that `go.mod` is different from the Go version in `external-packages/go.mod`, their `go.sum` may include more dependencies than `external-packages/go.sum`, which means they won't be able to run the solution.
+
 ## Subtests
 
 The test runner is responsible for [returning the `test_code` field](https://github.com/exercism/v3-docs/blob/master/anatomy/track-tooling/test-runners/interface.md#command), which should be a copy of the test code corresponding to each test result. 
