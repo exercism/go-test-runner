@@ -8,7 +8,7 @@ import (
 	"testing"
 )
 
-const version = 2
+const version = 3
 
 // TestRunTests_broken covers the case the code under test does not compile,
 // i.e. "go build ." would fail.
@@ -103,7 +103,7 @@ func TestRunTests_RuntimeError(t *testing.T) {
 
 	pre := `{
 	"status": "fail",
-	"version": 2,
+	"version": 3,
 	"tests": [
 		{
 			"name": "TestAddGigasecond",
@@ -174,7 +174,7 @@ func TestRunTests_PkgLevelError(t *testing.T) {
 
 	pre := `{
 	"status": "error",
-	"version": 2,
+	"version": 3,
 	"message": "panic: Please implement this function`
 
 	if !strings.HasPrefix(result, pre) {
@@ -198,7 +198,7 @@ func ExampleRunTests_failing() {
 	}
 	// Output: {
 	//	"status": "fail",
-	//	"version": 2,
+	//	"version": 3,
 	//	"tests": [
 	//		{
 	//			"name": "TestTrivialFail",
@@ -208,4 +208,67 @@ func ExampleRunTests_failing() {
 	//		}
 	//	]
 	//}
+}
+
+func TestRunTests_TaskIDs(t *testing.T) {
+	t.Run("concept exercise without explicit task IDs get task IDs auto-assigned", func(t *testing.T) {
+		input_dir := "./testdata/concept/conditionals"
+		cmdres, ok := runTests(input_dir)
+		if !ok {
+			fmt.Printf("pkg level error test expected to return ok: %s", cmdres.String())
+		}
+
+		output := getStructure(cmdres, input_dir, version)
+
+		b, _ := json.MarshalIndent(output, "  ", "  ")
+		fmt.Println(string(b))
+
+		expectedTaskIDs := []int{1, 2, 3, 3, 3, 4}
+
+		if len(expectedTaskIDs) != len(output.Tests) {
+			t.Fatalf("wrong length of Tests slice, got %d, want %d", len(output.Tests), len(expectedTaskIDs))
+		}
+
+		for i, testOutput := range output.Tests {
+			if testOutput.TaskID == nil {
+				t.Fatalf("expected task ID %d but got nil", expectedTaskIDs[i])
+			}
+			if *testOutput.TaskID != expectedTaskIDs[i] {
+				t.Errorf("wrong task ID found, got %d, want %d", *testOutput.TaskID, expectedTaskIDs[i])
+			}
+		}
+	})
+
+	t.Run("concept exercise with explicit task IDs", func(t *testing.T) {
+		input_dir := "./testdata/concept/conditionals-with-task-ids"
+		cmdres, ok := runTests(input_dir)
+		if !ok {
+			fmt.Printf("pkg level error test expected to return ok: %s", cmdres.String())
+		}
+
+		output := getStructure(cmdres, input_dir, version)
+
+		b, _ := json.MarshalIndent(output, "  ", "  ")
+		fmt.Println(string(b))
+
+		expectedTaskIDs := []*int{nil, ptr(2), ptr(1), ptr(1), ptr(1), ptr(3)}
+
+		if len(expectedTaskIDs) != len(output.Tests) {
+			t.Fatalf("wrong length of Tests slice, got %d, want %d", len(output.Tests), len(expectedTaskIDs))
+		}
+
+		for i, test := range output.Tests {
+			if expectedTaskIDs[i] != nil && test.TaskID == nil {
+				t.Fatalf("expected task ID %d but got nil", *expectedTaskIDs[i])
+			}
+
+			if expectedTaskIDs[i] == nil && test.TaskID != nil {
+				t.Fatalf("expected task ID nil but got %d", *test.TaskID)
+			}
+
+			if *test.TaskID != *expectedTaskIDs[i] {
+				t.Errorf("wrong task ID found, got %d, want %d", *test.TaskID, expectedTaskIDs[i])
+			}
+		}
+	})
 }

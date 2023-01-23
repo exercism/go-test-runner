@@ -1,6 +1,6 @@
 {
 	"status": "pass",
-	"version": 2,
+	"version": 3,
 	"tests": [
 		{
 			"name": "TestTrivialPass1/ subtest 1.1",

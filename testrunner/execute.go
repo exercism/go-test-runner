@@ -29,6 +29,7 @@ type testResult struct {
 	Status   string `json:"status"`
 	TestCode string `json:"test_code"`
 	Message  string `json:"message"`
+	TaskID   *int   `json:"task_id"`
 }
 
 type testReport struct {
@@ -49,7 +50,7 @@ type testLine struct {
 
 func Execute(input_dir string) []byte {
 	var report *testReport
-	ver := 2
+	ver := 3
 	if cmdres, ok := runTests(input_dir); ok {
 		report = getStructure(cmdres, input_dir, ver)
 	} else {
@@ -88,6 +89,7 @@ func getStructure(lines bytes.Buffer, input_dir string, ver int) *testReport {
 
 	tests = removeObsoleteParentTests(tests)
 	tests = formatTestNames(tests)
+	tests = setTaskIDs(tests)
 
 	for _, test := range tests {
 		if test.Status == statSkip {
@@ -153,12 +155,13 @@ func buildTests(lines bytes.Buffer, input_dir string) ([]testResult, error) {
 				tf = findTestFile(line.Test, input_dir)
 				testFileMap[line.Test] = tf
 			}
-			tc := ExtractTestCode(line.Test, tf)
+			tc, taskID := ExtractTestCodeAndTaskID(line.Test, tf)
 			result := testResult{
 				Name: line.Test,
 				// Use error as default state in case no other state is found later.
 				// No state is provided e.g. when there is a stack overflow.
 				Status: statErr,
+				TaskID: &taskID,
 			}
 			if len(tc) > 0 {
 				result.TestCode = tc
@@ -243,6 +246,43 @@ func formatTestNames(tests []testResult) []testResult {
 		out = append(out, test)
 	}
 	return out
+}
+
+// setTaskIDs checks whether there were already task IDs in the comments
+// of the test code. If the task ID is -1, it will be set to nil.
+// If no explicit task IDs where found, it will assign incrementing
+// task IDs to all tests in the list.
+func setTaskIDs(tests []testResult) []testResult {
+	if len(tests) == 0 {
+		return tests
+	}
+
+	explicitTaskIDsFound := false
+	for _, test := range tests {
+		if test.TaskID != nil && !explicitTaskIDsFound {
+			explicitTaskIDsFound = true
+		}
+		if test.TaskID != nil && *test.TaskID == -1 {
+			test.TaskID = nil
+		}
+	}
+
+	if explicitTaskIDsFound {
+		return tests
+	}
+
+	currentParent := ""
+	currentTaskID := 0
+	for i := range tests {
+		parentName, _ := splitTestName(tests[i].Name)
+		if parentName != currentParent {
+			currentParent = parentName
+			currentTaskID++
+		}
+		tests[i].TaskID = ptr(currentTaskID)
+	}
+
+	return tests
 }
 
 // codeCompiles runs "go build ." and return whether it worked or not
@@ -392,4 +432,8 @@ func contains(list []string, target string) bool {
 		}
 	}
 	return false
+}
+
+func ptr[T any](x T) *T {
+	return &x
 }
