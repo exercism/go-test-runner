@@ -12,6 +12,7 @@ func TestNonSubtest(t *testing.T) {
 	fmt.Println("should be returned")
 }
 
+// Some other comment
 // testRunnerTaskID=2
 func TestSimpleSubtest(t *testing.T) {
 	myTests := []struct {
@@ -34,7 +35,30 @@ func TestSimpleSubtest(t *testing.T) {
 	}
 }
 
+// testRunnerTaskID=2 More text here
+func TestSimpleSubtest2(t *testing.T) {
+	myTests := []struct {
+		name string
+		card string
+		want int
+	}{
+		{
+			name: "parse ace",
+			card: "ace",
+			want: 11,
+		},
+	}
+	for _, tt := range myTests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := ParseCard(tt.card); got != tt.want {
+				t.Errorf("ParseCard(%s) = %d, want %d", tt.card, got, tt.want)
+			}
+		})
+	}
+}
+
 // testRunnerTaskID=1
+// Some other comment
 func TestParseCard(t *testing.T) {
 	tests := []struct {
 		name string

@@ -161,7 +161,7 @@ func buildTests(lines bytes.Buffer, input_dir string) ([]testResult, error) {
 				// Use error as default state in case no other state is found later.
 				// No state is provided e.g. when there is a stack overflow.
 				Status: statErr,
-				TaskID: &taskID,
+				TaskID: taskID,
 			}
 			if len(tc) > 0 {
 				result.TestCode = tc
@@ -249,7 +249,7 @@ func formatTestNames(tests []testResult) []testResult {
 }
 
 // setTaskIDs checks whether there were already task IDs in the comments
-// of the test code. If the task ID is -1, it will be set to nil.
+// of the test code.
 // If no explicit task IDs where found, it will assign incrementing
 // task IDs to all tests in the list.
 func setTaskIDs(tests []testResult) []testResult {
@@ -258,12 +258,15 @@ func setTaskIDs(tests []testResult) []testResult {
 	}
 
 	explicitTaskIDsFound := false
-	for _, test := range tests {
+	for i, test := range tests {
 		if test.TaskID != nil && !explicitTaskIDsFound {
 			explicitTaskIDsFound = true
 		}
+
+		// Task ID -1 means there was an explicit intention that no task ID
+		// should be set in the result.
 		if test.TaskID != nil && *test.TaskID == -1 {
-			test.TaskID = nil
+			tests[i].TaskID = nil
 		}
 	}
 
