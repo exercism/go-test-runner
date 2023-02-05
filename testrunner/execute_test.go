@@ -14,7 +14,7 @@ const version = 3
 // i.e. "go build ." would fail.
 func TestRunTests_broken(t *testing.T) {
 	input_dir := "./testdata/practice/broken"
-	cmdres, ok := runTests(input_dir)
+	cmdres, ok := runTests(input_dir, nil)
 	if ok {
 		t.Errorf("Broken test did not fail %s", cmdres.String())
 	}
@@ -41,7 +41,7 @@ func TestRunTests_broken(t *testing.T) {
 // i.e. "go build ." would succeed but "go test" returns compilation errors.
 func TestRunTests_missingFunc(t *testing.T) {
 	input_dir := "./testdata/practice/missing_func"
-	cmdres, ok := runTests(input_dir)
+	cmdres, ok := runTests(input_dir, nil)
 	if ok {
 		t.Errorf("Missing function test did not fail %s", cmdres.String())
 	}
@@ -66,7 +66,7 @@ func TestRunTests_missingFunc(t *testing.T) {
 
 func TestRunTests_brokenImport(t *testing.T) {
 	input_dir := "./testdata/practice/broken_import"
-	cmdres, ok := runTests(input_dir)
+	cmdres, ok := runTests(input_dir, nil)
 	if ok {
 		t.Errorf("Broken import test did not fail %s", cmdres.String())
 	}
@@ -88,12 +88,12 @@ func TestRunTests_brokenImport(t *testing.T) {
 
 func TestRunTests_RuntimeError(t *testing.T) {
 	input_dir := "./testdata/practice/runtime_error"
-	cmdres, ok := runTests(input_dir)
+	cmdres, ok := runTests(input_dir, nil)
 	if !ok {
 		fmt.Printf("runtime error test expected to return ok: %s", cmdres.String())
 	}
 
-	output := getStructure(cmdres, input_dir, version)
+	output := getStructure(cmdres, input_dir, version, "")
 	jsonBytes, err := json.MarshalIndent(output, "", "\t")
 	if err != nil {
 		t.Fatalf("runtime error output not valid json: %s", err)
@@ -118,12 +118,12 @@ func TestRunTests_RuntimeError(t *testing.T) {
 
 func TestRunTests_RaceDetector(t *testing.T) {
 	input_dir := "./testdata/practice/race"
-	cmdres, ok := runTests(input_dir)
+	cmdres, ok := runTests(input_dir, []string{"-race"})
 	if !ok {
 		fmt.Printf("race detector test expected to return ok: %s", cmdres.String())
 	}
 
-	output := getStructure(cmdres, input_dir, version)
+	output := getStructure(cmdres, input_dir, version, "")
 	if output.Status != "fail" {
 		t.Errorf("wrong status for race detector test: got %q, want %q", output.Status, "fail")
 	}
@@ -136,12 +136,12 @@ func TestRunTests_RaceDetector(t *testing.T) {
 func TestRunTests_passing(t *testing.T) {
 	input_dir := "./testdata/practice/passing"
 
-	cmdres, ok := runTests(input_dir)
+	cmdres, ok := runTests(input_dir, nil)
 	if !ok {
 		t.Errorf("Passing test failed: %s", cmdres.String())
 	}
 
-	output := getStructure(cmdres, input_dir, version)
+	output := getStructure(cmdres, input_dir, version, "")
 	jsonBytes, err := json.MarshalIndent(output, "", "\t")
 	if err != nil {
 		t.Fatalf("Passing test output not valid json: %s", err)
@@ -159,12 +159,12 @@ func TestRunTests_passing(t *testing.T) {
 
 func TestRunTests_PkgLevelError(t *testing.T) {
 	input_dir := "./testdata/practice/pkg_level_error"
-	cmdres, ok := runTests(input_dir)
+	cmdres, ok := runTests(input_dir, nil)
 	if !ok {
 		fmt.Printf("pkg level error test expected to return ok: %s", cmdres.String())
 	}
 
-	output := getStructure(cmdres, input_dir, version)
+	output := getStructure(cmdres, input_dir, version, "")
 	jsonBytes, err := json.MarshalIndent(output, "", "\t")
 	if err != nil {
 		t.Fatalf("pkg level error output not valid json: %s", err)
@@ -185,12 +185,12 @@ func TestRunTests_PkgLevelError(t *testing.T) {
 func ExampleRunTests_failing() {
 	input_dir := "./testdata/practice/failing"
 
-	cmdres, ok := runTests(input_dir)
+	cmdres, ok := runTests(input_dir, nil)
 	if !ok {
 		fmt.Printf("Failing test expected to return ok: %s", cmdres.String())
 	}
 
-	output := getStructure(cmdres, input_dir, version)
+	output := getStructure(cmdres, input_dir, version, "")
 	if bts, err := json.MarshalIndent(output, "", "\t"); err != nil {
 		fmt.Printf("Failing test output not valid json: %s", err)
 	} else {
@@ -213,15 +213,12 @@ func ExampleRunTests_failing() {
 func TestRunTests_TaskIDs(t *testing.T) {
 	t.Run("concept exercise without explicit task IDs get task IDs auto-assigned", func(t *testing.T) {
 		input_dir := "./testdata/concept/conditionals"
-		cmdres, ok := runTests(input_dir)
+		cmdres, ok := runTests(input_dir, nil)
 		if !ok {
 			fmt.Printf("pkg level error test expected to return ok: %s", cmdres.String())
 		}
 
-		output := getStructure(cmdres, input_dir, version)
-
-		b, _ := json.MarshalIndent(output, "  ", "  ")
-		fmt.Println(string(b))
+		output := getStructure(cmdres, input_dir, version, "concept")
 
 		expectedTaskIDs := []int{1, 2, 3, 3, 3, 4}
 
@@ -241,12 +238,12 @@ func TestRunTests_TaskIDs(t *testing.T) {
 
 	t.Run("concept exercise with explicit task IDs", func(t *testing.T) {
 		input_dir := "./testdata/concept/conditionals-with-task-ids"
-		cmdres, ok := runTests(input_dir)
+		cmdres, ok := runTests(input_dir, nil)
 		if !ok {
 			fmt.Printf("pkg level error test expected to return ok: %s", cmdres.String())
 		}
 
-		output := getStructure(cmdres, input_dir, version)
+		output := getStructure(cmdres, input_dir, version, "concept")
 
 		b, _ := json.MarshalIndent(output, "  ", "  ")
 		fmt.Println(string(b))

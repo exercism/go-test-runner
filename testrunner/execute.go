@@ -29,7 +29,7 @@ type testResult struct {
 	Status   string `json:"status"`
 	TestCode string `json:"test_code"`
 	Message  string `json:"message"`
-	TaskID   *int   `json:"task_id"`
+	TaskID   *int   `json:"task_id,omitempty"`
 }
 
 type testReport struct {
@@ -51,8 +51,11 @@ type testLine struct {
 func Execute(input_dir string) []byte {
 	var report *testReport
 	ver := 3
-	if cmdres, ok := runTests(input_dir); ok {
-		report = getStructure(cmdres, input_dir, ver)
+
+	exerciseConfig := parseExerciseConfig(input_dir)
+
+	if cmdres, ok := runTests(input_dir, exerciseConfig.TestingFlags); ok {
+		report = getStructure(cmdres, input_dir, ver, exerciseConfig.Type)
 	} else {
 		report = &testReport{
 			Status:  statErr,
@@ -68,7 +71,7 @@ func Execute(input_dir string) []byte {
 	return bts
 }
 
-func getStructure(lines bytes.Buffer, input_dir string, ver int) *testReport {
+func getStructure(lines bytes.Buffer, input_dir string, ver int, exerciseType string) *testReport {
 	report := &testReport{
 		Status:  statPass,
 		Version: ver,
@@ -89,7 +92,7 @@ func getStructure(lines bytes.Buffer, input_dir string, ver int) *testReport {
 
 	tests = removeObsoleteParentTests(tests)
 	tests = formatTestNames(tests)
-	tests = setTaskIDs(tests)
+	tests = cleanUpTaskIDs(tests, exerciseType)
 
 	for _, test := range tests {
 		if test.Status == statSkip {
@@ -248,12 +251,20 @@ func formatTestNames(tests []testResult) []testResult {
 	return out
 }
 
-// setTaskIDs checks whether there were already task IDs in the comments
-// of the test code.
+// cleanUpTaskIDs makes sure no task IDs are set for practice exercises.
+// For concept exercises it checks whether there were already task IDs in
+// the comments of the test code. If yes, those are kept.
 // If no explicit task IDs where found, it will assign incrementing
 // task IDs to all tests in the list.
-func setTaskIDs(tests []testResult) []testResult {
+func cleanUpTaskIDs(tests []testResult, exerciseType string) []testResult {
 	if len(tests) == 0 {
+		return tests
+	}
+
+	if exerciseType != "concept" {
+		for i := range tests {
+			tests[i].TaskID = nil
+		}
 		return tests
 	}
 
@@ -332,13 +343,12 @@ func testCompiles(input_dir string) bool {
 
 // Run the "go test --short --json ." command, return output
 // --short is used to exclude benchmark tests, given the spec / web UI currently cannot handle them
-func runTests(input_dir string) (bytes.Buffer, bool) {
+func runTests(input_dir string, additionalTestFlags []string) (bytes.Buffer, bool) {
 	goExe, err := exec.LookPath("go")
 	if err != nil {
 		log.Fatal("failed to find go executable: ", err)
 	}
 
-	additionalTestFlags := findAdditionalTestFlags(input_dir)
 	testCommand := []string{goExe, "test", "--short", "--json"}
 	testCommand = append(testCommand, additionalTestFlags...)
 	testCommand = append(testCommand, ".")
@@ -390,34 +400,47 @@ func runTests(input_dir string) (bytes.Buffer, bool) {
 }
 
 type config struct {
-	Custom struct {
-		TestingFlags []string `json:"testingFlags"`
-	} `json:"custom"`
+	Custom ExerciseConfig `json:"custom"`
 }
 
-func findAdditionalTestFlags(input_dir string) []string {
+type ExerciseConfig struct {
+	TestingFlags []string `json:"testingFlags"`
+	Type         string   `json:"exerciseType"`
+}
+
+func parseExerciseConfig(input_dir string) ExerciseConfig {
+	result := ExerciseConfig{
+		Type: "practice",
+	}
+
 	configContent, err := os.ReadFile(filepath.Join(input_dir, ".meta", "config.json"))
 	if err != nil {
 		log.Printf("warning: config.json could not be read: %v", err)
-		return nil
+		return result
 	}
 
 	cfg := &config{}
 	err = json.Unmarshal(configContent, cfg)
 	if err != nil {
 		log.Printf("failed to parse config.json: %v", err)
-		return nil
+		return result
 	}
 
-	if len(cfg.Custom.TestingFlags) == 0 {
-		return nil
+	if len(cfg.Custom.TestingFlags) != 0 {
+		result.TestingFlags = validateTestingFlags(cfg.Custom.TestingFlags)
 	}
 
-	return validateTestingFlags(cfg.Custom.TestingFlags)
+	// All exercise types that are not "concept" default to "practice".
+	if cfg.Custom.Type == "concept" {
+		result.Type = "concept"
+	}
+
+	return result
+
 }
 
 func validateTestingFlags(flags []string) []string {
-	validFlags := []string{}
+	var validFlags []string
 	for _, flag := range flags {
 		if contains(allowedTestingFlags, flag) {
 			validFlags = append(validFlags, flag)
