@@ -291,6 +291,7 @@ func cleanUpTaskIDs(tests []testResult, exerciseType string) []testResult {
 		parentName, _ := splitTestName(tests[i].Name)
 		if parentName != currentParent {
 			currentParent = parentName
+			// Only increment the number, if a new parent test starts.
 			currentTaskID++
 		}
 		tests[i].TaskID = ptr(currentTaskID)
