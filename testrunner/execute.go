@@ -456,7 +456,3 @@ func contains(list []string, target string) bool {
 	}
 	return false
 }
-
-func ptr[T any](x T) *T {
-	return &x
-}
