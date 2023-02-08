@@ -1,0 +1,23 @@
+{
+  "blurb": "...",
+  "authors": [
+    "..."
+  ],
+  "contributors": [
+    "..."
+  ],
+  "files": {
+    "solution": [
+      "passing.go"
+    ],
+    "test": [
+      "passing_test.go"
+    ],
+    "example": [
+      ".meta/example.go"
+    ]
+  },
+  "custom": {
+    "taskIdsEnabled": true
+  }
+}

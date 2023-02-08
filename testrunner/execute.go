@@ -416,28 +416,24 @@ type ExerciseConfig struct {
 }
 
 func parseExerciseConfig(input_dir string) ExerciseConfig {
-	result := ExerciseConfig{
-		TaskIDsEnabled: false,
-	}
-
 	configContent, err := os.ReadFile(filepath.Join(input_dir, ".meta", "config.json"))
 	if err != nil {
 		log.Printf("warning: config.json could not be read: %v", err)
-		return result
+		return ExerciseConfig{}
 	}
 
 	cfg := &config{}
 	err = json.Unmarshal(configContent, cfg)
 	if err != nil {
 		log.Printf("failed to parse config.json: %v", err)
-		return result
+		return ExerciseConfig{}
 	}
 
 	if len(cfg.Custom.TestingFlags) != 0 {
-		result.TestingFlags = validateTestingFlags(cfg.Custom.TestingFlags)
+		cfg.Custom.TestingFlags = validateTestingFlags(cfg.Custom.TestingFlags)
 	}
 
-	return result
+	return cfg.Custom
 }
 
 func validateTestingFlags(flags []string) []string {

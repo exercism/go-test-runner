@@ -203,6 +203,8 @@ For most concept exercises, we have this 1 to 1 relationship between tests and t
 This implicit assignment means we do not need to add anything to the test files to get task ids in the test runner output.
 We only need to set the type in the config as shown above.
 
+You can test this locally end-to-end via `go run . testrunner/testdata/concept/conditionals outdir`.
+
 ### Explicit Task Id Assignment
 
 If the implicit system would lead to wrong task ids, they can be set manually via a comment in the following format that is added for the test function:
@@ -215,6 +217,8 @@ func TestSomething(t *testing.T) {
 ```
 
 Sub-tests automatically get the task id from their parent, they don't need any explicit assignment.
+
+You can test this locally end-to-end via `go run . testrunner/testdata/concept/conditionals-with-task-ids outdir`.
 
 Explicit task id assignment will only take effect if an explicit task id was found on every parent test in the test file.
 Otherwise no task ids will be set at all.
