@@ -5,7 +5,7 @@ import (
 	"testing"
 )
 
-// testRunnerTaskID=no-ID
+// testRunnerTaskID=4
 func TestNonSubtest(t *testing.T) {
 	// comments should be included
 	fmt.Println("the whole block")

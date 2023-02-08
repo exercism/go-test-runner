@@ -45,7 +45,7 @@ func findTestFile(testName string, codePath string) string {
 }
 
 // return the associated test function code from the given test file
-func ExtractTestCodeAndTaskID(testName string, testFile string) (string, *int) {
+func ExtractTestCodeAndTaskID(testName string, testFile string) (string, uint64) {
 	test, subtest := splitTestName(testName)
 	tc, taskID := getFuncCodeAndTaskID(test, testFile)
 	if 0 == len(subtest) {

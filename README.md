@@ -174,25 +174,29 @@ If more flags should be allowed in the future, they first need to be added to th
 
 ## Assigning Task Ids
 
-Under certain conditions, the output of the test runner will contain [task ids][task-id] for the different test cases.
-These ids are used in the UI to associate the test result with the corresponding task in the exercise.
+For concept exercises, the output of the test runner can contain [task ids][task-id] for the different test cases.
+These ids are used on the website to associate the test result with the corresponding task in the exercise.
+This leads to a great user experience for the students.
 
-The output will only contain task ids if the `.meta/config.json` contains the information that the exercise is a concept exercise like this (otherwise task ids are omitted):
+The test runner output will only contain task ids if they were explicitly enabled in the `.meta/config.json` file for the exercise as shown below (otherwise task ids are omitted):
 
 ```json
 {
   // ...
   "custom": {
-    "exerciseType": "concept"
+    "taskIdsEnabled": true
   }
 }
 ```
+
+Note that this flag should only ever be set for concept exercises.
+Task ids are currently not supported for practice exercise.
 
 There are two ways the test runner can assign task ids for concept exercises.
 
 ### Implicit Task Id Assignment
 
-If the exercise type is `concept` but there are no explicit task ids found in the test file, the test runner will automatically assign task ids.
+If `"enableTaskIds": true` was set but there are no explicit task ids found in the test file, the test runner will automatically assign task ids.
 It assumes each parent test corresponds to one task and will assign task id 1 to the first parent test and its sub-tests, task id 2 to the next one etc.
 
 For most concept exercises, we have this 1 to 1 relationship between tests and tasks.
@@ -212,14 +216,8 @@ func TestSomething(t *testing.T) {
 
 Sub-tests automatically get the task id from their parent, they don't need any explicit assignment.
 
-If you want a exclude one or more tests from getting a specific task id assigned, e.g. because they apply to all tasks, you can use the following comment (anything that is not a number as id will work actually). In the test runner output, no task id will be set for this test.
-
-```go
-// testRunnerTaskID=no-ID
-func TestSomething(t *testing.T) {
-  // ...
-}
-```
+Explicit task id assignment will only take effect if an explicit task id was found on every parent test in the test file.
+Otherwise no task ids will be set at all.
 
 Finding the task id is robust again other comments before or after or in the same line as the `testRunnerTaskID` comment, see the [conditionals-with-task-ids test file][task-id-comments-examples] for examples.
 

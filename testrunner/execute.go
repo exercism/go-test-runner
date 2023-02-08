@@ -29,7 +29,7 @@ type testResult struct {
 	Status   string `json:"status"`
 	TestCode string `json:"test_code"`
 	Message  string `json:"message"`
-	TaskID   *int   `json:"task_id,omitempty"`
+	TaskID   uint64 `json:"task_id,omitempty"`
 }
 
 type testReport struct {
@@ -55,7 +55,7 @@ func Execute(input_dir string) []byte {
 	exerciseConfig := parseExerciseConfig(input_dir)
 
 	if cmdres, ok := runTests(input_dir, exerciseConfig.TestingFlags); ok {
-		report = getStructure(cmdres, input_dir, ver, exerciseConfig.Type)
+		report = getStructure(cmdres, input_dir, ver, exerciseConfig.TaskIDsEnabled)
 	} else {
 		report = &testReport{
 			Status:  statErr,
@@ -71,7 +71,7 @@ func Execute(input_dir string) []byte {
 	return bts
 }
 
-func getStructure(lines bytes.Buffer, input_dir string, ver int, exerciseType string) *testReport {
+func getStructure(lines bytes.Buffer, input_dir string, ver int, taskIDsEnabled bool) *testReport {
 	report := &testReport{
 		Status:  statPass,
 		Version: ver,
@@ -92,7 +92,7 @@ func getStructure(lines bytes.Buffer, input_dir string, ver int, exerciseType st
 
 	tests = removeObsoleteParentTests(tests)
 	tests = formatTestNames(tests)
-	tests = cleanUpTaskIDs(tests, exerciseType)
+	tests = cleanUpTaskIDs(tests, taskIDsEnabled)
 
 	for _, test := range tests {
 		if test.Status == statSkip {
@@ -251,42 +251,48 @@ func formatTestNames(tests []testResult) []testResult {
 	return out
 }
 
-// cleanUpTaskIDs makes sure no task IDs are set for practice exercises.
-// For concept exercises it checks whether there were already task IDs in
-// the comments of the test code. If yes, those are kept.
+// cleanUpTaskIDs makes sure no task IDs are set when they were not enabled
+// in the config. If task ids are enabled and explicit values were found for all
+// parent tests, those are kept.
 // If no explicit task IDs where found, it will assign incrementing
 // task IDs to all tests in the list.
-func cleanUpTaskIDs(tests []testResult, exerciseType string) []testResult {
+func cleanUpTaskIDs(tests []testResult, taskIDsEnabled bool) []testResult {
 	if len(tests) == 0 {
 		return tests
 	}
 
-	if exerciseType != "concept" {
+	if !taskIDsEnabled {
 		for i := range tests {
-			tests[i].TaskID = nil
+			tests[i].TaskID = 0
 		}
 		return tests
 	}
 
-	explicitTaskIDsFound := false
-	for i, test := range tests {
-		if test.TaskID != nil && !explicitTaskIDsFound {
-			explicitTaskIDsFound = true
-		}
-
-		// Task ID -1 means there was an explicit intention that no task ID
-		// should be set in the result.
-		if test.TaskID != nil && *test.TaskID == -1 {
-			tests[i].TaskID = nil
+	allTestsHaveTaskIDs := true
+	taskIDSeen := false
+	for _, test := range tests {
+		if test.TaskID == 0 {
+			allTestsHaveTaskIDs = false
+		} else {
+			taskIDSeen = true
 		}
 	}
 
-	if explicitTaskIDsFound {
+	if allTestsHaveTaskIDs {
 		return tests
 	}
 
+	// If we found some task ids but not all of them, we remove all task ids to be safe.
+	if taskIDSeen {
+		for i := range tests {
+			tests[i].TaskID = 0
+		}
+		return tests
+	}
+
+	// No explicit task IDs found, performing auto-assignment.
 	currentParent := ""
-	currentTaskID := 0
+	currentTaskID := uint64(0)
 	for i := range tests {
 		parentName, _ := splitTestName(tests[i].Name)
 		if parentName != currentParent {
@@ -294,7 +300,7 @@ func cleanUpTaskIDs(tests []testResult, exerciseType string) []testResult {
 			// Only increment the number, if a new parent test starts.
 			currentTaskID++
 		}
-		tests[i].TaskID = ptr(currentTaskID)
+		tests[i].TaskID = currentTaskID
 	}
 
 	return tests
@@ -405,13 +411,13 @@ type config struct {
 }
 
 type ExerciseConfig struct {
-	TestingFlags []string `json:"testingFlags"`
-	Type         string   `json:"exerciseType"`
+	TestingFlags   []string `json:"testingFlags"`
+	TaskIDsEnabled bool     `json:"taskIdsEnabled"`
 }
 
 func parseExerciseConfig(input_dir string) ExerciseConfig {
 	result := ExerciseConfig{
-		Type: "practice",
+		TaskIDsEnabled: false,
 	}
 
 	configContent, err := os.ReadFile(filepath.Join(input_dir, ".meta", "config.json"))
@@ -431,13 +437,7 @@ func parseExerciseConfig(input_dir string) ExerciseConfig {
 		result.TestingFlags = validateTestingFlags(cfg.Custom.TestingFlags)
 	}
 
-	// All exercise types that are not "concept" default to "practice".
-	if cfg.Custom.Type == "concept" {
-		result.Type = "concept"
-	}
-
 	return result
-
 }
 
 func validateTestingFlags(flags []string) []string {
