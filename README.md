@@ -171,3 +171,59 @@ This is done via the `.meta/config.json` file of the exercise. See example below
 
 Currently, only the flag `-race` is supported.
 If more flags should be allowed in the future, they first need to be added to the `allowedTestingFlags` list in `testrunner/execute.go`.
+
+## Assigning Task Ids
+
+For concept exercises, the output of the test runner can contain [task ids][task-id] for the different test cases.
+These ids are used on the website to associate the test result with the corresponding task in the exercise.
+This leads to a great user experience for the students.
+
+The test runner output will only contain task ids if they were explicitly enabled in the `.meta/config.json` file for the exercise as shown below (otherwise task ids are omitted):
+
+```json
+{
+  // ...
+  "custom": {
+    "taskIdsEnabled": true
+  }
+}
+```
+
+Note that this flag should only ever be set for concept exercises.
+Task ids are currently not supported for practice exercise.
+
+There are two ways the test runner can assign task ids for concept exercises.
+
+### Implicit Task Id Assignment
+
+If `"taskIdsEnabled": true` was set but there are no explicit task ids found in the test file, the test runner will automatically assign task ids.
+It assumes each parent test corresponds to one task and will assign task id 1 to the first parent test and its sub-tests, task id 2 to the next one etc.
+
+For most concept exercises, we have this 1 to 1 relationship between tests and tasks.
+This implicit assignment means we do not need to add anything to the test files to get task ids in the test runner output.
+We only need to set the type in the config as shown above.
+
+You can test this locally end-to-end via `go run . testrunner/testdata/concept/conditionals outdir`.
+
+### Explicit Task Id Assignment
+
+If the implicit system would lead to wrong task ids, they can be set manually via a comment in the following format that is added for the test function:
+
+```go
+// testRunnerTaskID=1
+func TestSomething(t *testing.T) {
+  // ...
+}
+```
+
+Sub-tests automatically get the task id from their parent, they don't need any explicit assignment.
+
+You can test this locally end-to-end via `go run . testrunner/testdata/concept/conditionals-with-task-ids outdir`.
+
+Explicit task id assignment will only take effect if an explicit task id was found on every parent test in the test file.
+Otherwise no task ids will be set at all.
+
+Finding the task id is robust again other comments before or after or in the same line as the `testRunnerTaskID` comment, see the [conditionals-with-task-ids test file][task-id-comments-examples] for examples.
+
+[task-id]: https://exercism.org/docs/building/tooling/test-runners/interface#h-task-id
+[task-id-comments-examples]: https://github.com/exercism/go-test-runner/tree/main/testrunner/testdata/concept/conditionals-with-task-ids

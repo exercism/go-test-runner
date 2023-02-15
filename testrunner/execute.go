@@ -29,6 +29,7 @@ type testResult struct {
 	Status   string `json:"status"`
 	TestCode string `json:"test_code"`
 	Message  string `json:"message"`
+	TaskID   uint64 `json:"task_id,omitempty"`
 }
 
 type testReport struct {
@@ -49,9 +50,12 @@ type testLine struct {
 
 func Execute(input_dir string) []byte {
 	var report *testReport
-	ver := 2
-	if cmdres, ok := runTests(input_dir); ok {
-		report = getStructure(cmdres, input_dir, ver)
+	ver := 3
+
+	exerciseConfig := parseExerciseConfig(input_dir)
+
+	if cmdres, ok := runTests(input_dir, exerciseConfig.TestingFlags); ok {
+		report = getStructure(cmdres, input_dir, ver, exerciseConfig.TaskIDsEnabled)
 	} else {
 		report = &testReport{
 			Status:  statErr,
@@ -67,7 +71,7 @@ func Execute(input_dir string) []byte {
 	return bts
 }
 
-func getStructure(lines bytes.Buffer, input_dir string, ver int) *testReport {
+func getStructure(lines bytes.Buffer, input_dir string, ver int, taskIDsEnabled bool) *testReport {
 	report := &testReport{
 		Status:  statPass,
 		Version: ver,
@@ -88,6 +92,7 @@ func getStructure(lines bytes.Buffer, input_dir string, ver int) *testReport {
 
 	tests = removeObsoleteParentTests(tests)
 	tests = formatTestNames(tests)
+	tests = cleanUpTaskIDs(tests, taskIDsEnabled)
 
 	for _, test := range tests {
 		if test.Status == statSkip {
@@ -153,12 +158,13 @@ func buildTests(lines bytes.Buffer, input_dir string) ([]testResult, error) {
 				tf = findTestFile(line.Test, input_dir)
 				testFileMap[line.Test] = tf
 			}
-			tc := ExtractTestCode(line.Test, tf)
+			tc, taskID := ExtractTestCodeAndTaskID(line.Test, tf)
 			result := testResult{
 				Name: line.Test,
 				// Use error as default state in case no other state is found later.
 				// No state is provided e.g. when there is a stack overflow.
 				Status: statErr,
+				TaskID: taskID,
 			}
 			if len(tc) > 0 {
 				result.TestCode = tc
@@ -245,6 +251,61 @@ func formatTestNames(tests []testResult) []testResult {
 	return out
 }
 
+// cleanUpTaskIDs makes sure no task IDs are set when they were not enabled
+// in the config. If task ids are enabled and explicit values were found for all
+// parent tests, those are kept.
+// If no explicit task IDs where found, it will assign incrementing
+// task IDs to all tests in the list.
+func cleanUpTaskIDs(tests []testResult, taskIDsEnabled bool) []testResult {
+	if len(tests) == 0 {
+		return tests
+	}
+
+	if !taskIDsEnabled {
+		for i := range tests {
+			tests[i].TaskID = 0
+		}
+		return tests
+	}
+
+	allTestsHaveTaskIDs := true
+	taskIDSeen := false
+	for _, test := range tests {
+		if test.TaskID == 0 {
+			allTestsHaveTaskIDs = false
+		} else {
+			taskIDSeen = true
+		}
+	}
+
+	if allTestsHaveTaskIDs {
+		return tests
+	}
+
+	// If we found some task ids but not all of them, we remove all task ids to be safe.
+	if taskIDSeen {
+		for i := range tests {
+			tests[i].TaskID = 0
+		}
+		return tests
+	}
+
+	// No explicit task IDs found, performing auto-assignment.
+	currentParent := ""
+	currentTaskID := uint64(0)
+	for i := range tests {
+		parentName, _ := splitTestName(tests[i].Name)
+		if parentName != currentParent {
+			currentParent = parentName
+			// Only increment the number, if a new parent test starts.
+			currentTaskID++
+		}
+		tests[i].TaskID = currentTaskID
+	}
+
+	return tests
+}
+
 // codeCompiles runs "go build ." and return whether it worked or not
 func codeCompiles(input_dir string) bool {
 	goExe, err := exec.LookPath("go")
@@ -289,13 +350,12 @@ func testCompiles(input_dir string) bool {
 
 // Run the "go test --short --json ." command, return output
 // --short is used to exclude benchmark tests, given the spec / web UI currently cannot handle them
-func runTests(input_dir string) (bytes.Buffer, bool) {
+func runTests(input_dir string, additionalTestFlags []string) (bytes.Buffer, bool) {
 	goExe, err := exec.LookPath("go")
 	if err != nil {
 		log.Fatal("failed to find go executable: ", err)
 	}
 
-	additionalTestFlags := findAdditionalTestFlags(input_dir)
 	testCommand := []string{goExe, "test", "--short", "--json"}
 	testCommand = append(testCommand, additionalTestFlags...)
 	testCommand = append(testCommand, ".")
@@ -347,34 +407,37 @@ func runTests(input_dir string) (bytes.Buffer, bool) {
 }
 
 type config struct {
-	Custom struct {
-		TestingFlags []string `json:"testingFlags"`
-	} `json:"custom"`
+	Custom ExerciseConfig `json:"custom"`
 }
 
-func findAdditionalTestFlags(input_dir string) []string {
+type ExerciseConfig struct {
+	TestingFlags   []string `json:"testingFlags"`
+	TaskIDsEnabled bool     `json:"taskIdsEnabled"`
+}
+
+func parseExerciseConfig(input_dir string) ExerciseConfig {
 	configContent, err := os.ReadFile(filepath.Join(input_dir, ".meta", "config.json"))
 	if err != nil {
 		log.Printf("warning: config.json could not be read: %v", err)
-		return nil
+		return ExerciseConfig{}
 	}
 
 	cfg := &config{}
 	err = json.Unmarshal(configContent, cfg)
 	if err != nil {
 		log.Printf("failed to parse config.json: %v", err)
-		return nil
+		return ExerciseConfig{}
 	}
 
-	if len(cfg.Custom.TestingFlags) == 0 {
-		return nil
+	if len(cfg.Custom.TestingFlags) != 0 {
+		cfg.Custom.TestingFlags = validateTestingFlags(cfg.Custom.TestingFlags)
 	}
 
-	return validateTestingFlags(cfg.Custom.TestingFlags)
+	return cfg.Custom
 }
 
 func validateTestingFlags(flags []string) []string {
-	validFlags := []string{}
+	var validFlags []string
 	for _, flag := range flags {
 		if contains(allowedTestingFlags, flag) {
 			validFlags = append(validFlags, flag)

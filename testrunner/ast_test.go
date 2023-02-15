@@ -30,7 +30,7 @@ func TestGetFuncCode(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if code := getFuncCode(tt.testName, tt.testFile); code != tt.code {
+			if code, _ := getFuncCodeAndTaskID(tt.testName, tt.testFile); code != tt.code {
 				t.Errorf("getFuncCode(%v, %v) = %v; want %v",
 					tt.testName, tt.testFile, code, tt.code)
 			}

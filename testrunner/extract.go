@@ -45,18 +45,18 @@ func findTestFile(testName string, codePath string) string {
 }
 
 // return the associated test function code from the given test file
-func ExtractTestCode(testName string, testFile string) string {
+func ExtractTestCodeAndTaskID(testName string, testFile string) (string, uint64) {
 	test, subtest := splitTestName(testName)
-	tc := getFuncCode(test, testFile)
+	tc, taskID := getFuncCodeAndTaskID(test, testFile)
 	if 0 == len(subtest) {
-		return tc
+		return tc, taskID
 	}
 	defer handleASTPanic()
 	subtc := getSubCode(test, subtest, tc, testFile)
 	if 0 == len(subtc) {
-		return tc
+		return tc, taskID
 	}
-	return subtc
+	return subtc, taskID
 }
 
 func handleASTPanic() {

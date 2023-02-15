@@ -8,13 +8,13 @@ import (
 	"testing"
 )
 
-const version = 2
+const version = 3
 
 // TestRunTests_broken covers the case the code under test does not compile,
 // i.e. "go build ." would fail.
 func TestRunTests_broken(t *testing.T) {
 	input_dir := "./testdata/practice/broken"
-	cmdres, ok := runTests(input_dir)
+	cmdres, ok := runTests(input_dir, nil)
 	if ok {
 		t.Errorf("Broken test did not fail %s", cmdres.String())
 	}
@@ -41,7 +41,7 @@ func TestRunTests_broken(t *testing.T) {
 // i.e. "go build ." would succeed but "go test" returns compilation errors.
 func TestRunTests_missingFunc(t *testing.T) {
 	input_dir := "./testdata/practice/missing_func"
-	cmdres, ok := runTests(input_dir)
+	cmdres, ok := runTests(input_dir, nil)
 	if ok {
 		t.Errorf("Missing function test did not fail %s", cmdres.String())
 	}
@@ -66,7 +66,7 @@ func TestRunTests_missingFunc(t *testing.T) {
 
 func TestRunTests_brokenImport(t *testing.T) {
 	input_dir := "./testdata/practice/broken_import"
-	cmdres, ok := runTests(input_dir)
+	cmdres, ok := runTests(input_dir, nil)
 	if ok {
 		t.Errorf("Broken import test did not fail %s", cmdres.String())
 	}
@@ -88,12 +88,12 @@ func TestRunTests_brokenImport(t *testing.T) {
 
 func TestRunTests_RuntimeError(t *testing.T) {
 	input_dir := "./testdata/practice/runtime_error"
-	cmdres, ok := runTests(input_dir)
+	cmdres, ok := runTests(input_dir, nil)
 	if !ok {
 		fmt.Printf("runtime error test expected to return ok: %s", cmdres.String())
 	}
 
-	output := getStructure(cmdres, input_dir, version)
+	output := getStructure(cmdres, input_dir, version, false)
 	jsonBytes, err := json.MarshalIndent(output, "", "\t")
 	if err != nil {
 		t.Fatalf("runtime error output not valid json: %s", err)
@@ -103,7 +103,7 @@ func TestRunTests_RuntimeError(t *testing.T) {
 
 	pre := `{
 	"status": "fail",
-	"version": 2,
+	"version": 3,
 	"tests": [
 		{
 			"name": "TestAddGigasecond",
@@ -118,12 +118,12 @@ func TestRunTests_RuntimeError(t *testing.T) {
 
 func TestRunTests_RaceDetector(t *testing.T) {
 	input_dir := "./testdata/practice/race"
-	cmdres, ok := runTests(input_dir)
+	cmdres, ok := runTests(input_dir, []string{"-race"})
 	if !ok {
 		fmt.Printf("race detector test expected to return ok: %s", cmdres.String())
 	}
 
-	output := getStructure(cmdres, input_dir, version)
+	output := getStructure(cmdres, input_dir, version, false)
 	if output.Status != "fail" {
 		t.Errorf("wrong status for race detector test: got %q, want %q", output.Status, "fail")
 	}
@@ -136,12 +136,12 @@ func TestRunTests_RaceDetector(t *testing.T) {
 func TestRunTests_passing(t *testing.T) {
 	input_dir := "./testdata/practice/passing"
 
-	cmdres, ok := runTests(input_dir)
+	cmdres, ok := runTests(input_dir, nil)
 	if !ok {
 		t.Errorf("Passing test failed: %s", cmdres.String())
 	}
 
-	output := getStructure(cmdres, input_dir, version)
+	output := getStructure(cmdres, input_dir, version, false)
 	jsonBytes, err := json.MarshalIndent(output, "", "\t")
 	if err != nil {
 		t.Fatalf("Passing test output not valid json: %s", err)
@@ -159,12 +159,12 @@ func TestRunTests_passing(t *testing.T) {
 
 func TestRunTests_PkgLevelError(t *testing.T) {
 	input_dir := "./testdata/practice/pkg_level_error"
-	cmdres, ok := runTests(input_dir)
+	cmdres, ok := runTests(input_dir, nil)
 	if !ok {
 		fmt.Printf("pkg level error test expected to return ok: %s", cmdres.String())
 	}
 
-	output := getStructure(cmdres, input_dir, version)
+	output := getStructure(cmdres, input_dir, version, false)
 	jsonBytes, err := json.MarshalIndent(output, "", "\t")
 	if err != nil {
 		t.Fatalf("pkg level error output not valid json: %s", err)
@@ -174,7 +174,7 @@ func TestRunTests_PkgLevelError(t *testing.T) {
 
 	pre := `{
 	"status": "error",
-	"version": 2,
+	"version": 3,
 	"message": "panic: Please implement this function`
 
 	if !strings.HasPrefix(result, pre) {
@@ -185,12 +185,12 @@ func TestRunTests_PkgLevelError(t *testing.T) {
 func ExampleRunTests_failing() {
 	input_dir := "./testdata/practice/failing"
 
-	cmdres, ok := runTests(input_dir)
+	cmdres, ok := runTests(input_dir, nil)
 	if !ok {
 		fmt.Printf("Failing test expected to return ok: %s", cmdres.String())
 	}
 
-	output := getStructure(cmdres, input_dir, version)
+	output := getStructure(cmdres, input_dir, version, false)
 	if bts, err := json.MarshalIndent(output, "", "\t"); err != nil {
 		fmt.Printf("Failing test output not valid json: %s", err)
 	} else {
@@ -198,7 +198,7 @@ func ExampleRunTests_failing() {
 	}
 	// Output: {
 	//	"status": "fail",
-	//	"version": 2,
+	//	"version": 3,
 	//	"tests": [
 	//		{
 	//			"name": "TestTrivialFail",
@@ -208,4 +208,70 @@ func ExampleRunTests_failing() {
 	//		}
 	//	]
 	//}
+}
+
+func TestRunTests_TaskIDs(t *testing.T) {
+	t.Run("concept exercise without explicit task IDs get task IDs auto-assigned", func(t *testing.T) {
+		input_dir := "./testdata/concept/conditionals"
+		cmdres, ok := runTests(input_dir, nil)
+		if !ok {
+			fmt.Printf("expected ok: %s", cmdres.String())
+		}
+
+		output := getStructure(cmdres, input_dir, version, true)
+
+		expectedTaskIDs := []uint64{1, 2, 3, 3, 3, 4}
+
+		if len(expectedTaskIDs) != len(output.Tests) {
+			t.Fatalf("wrong length of Tests slice, got %d, want %d", len(output.Tests), len(expectedTaskIDs))
+		}
+
+		for i, testOutput := range output.Tests {
+			if testOutput.TaskID != expectedTaskIDs[i] {
+				t.Errorf("wrong task ID found, got %d, want %d", testOutput.TaskID, expectedTaskIDs[i])
+			}
+		}
+	})
+
+	t.Run("concept exercise with explicit task IDs", func(t *testing.T) {
+		input_dir := "./testdata/concept/conditionals-with-task-ids"
+		cmdres, ok := runTests(input_dir, nil)
+		if !ok {
+			fmt.Printf("expected ok: %s", cmdres.String())
+		}
+
+		output := getStructure(cmdres, input_dir, version, true)
+
+		expectedTaskIDs := []uint64{4, 2, 2, 1, 1, 1, 3}
+
+		if len(expectedTaskIDs) != len(output.Tests) {
+			t.Fatalf("wrong length of Tests slice, got %d, want %d", len(output.Tests), len(expectedTaskIDs))
+		}
+
+		for i, test := range output.Tests {
+			if test.TaskID != expectedTaskIDs[i] {
+				t.Errorf("wrong task ID found, got %d, want %d", test.TaskID, expectedTaskIDs[i])
+			}
+		}
+	})
+
+	t.Run("concept exercise missing task IDs", func(t *testing.T) {
+		input_dir := "./testdata/concept/missing-task-ids"
+		cmdres, ok := runTests(input_dir, nil)
+		if !ok {
+			fmt.Printf("expected ok: %s", cmdres.String())
+		}
+
+		output := getStructure(cmdres, input_dir, version, true)
+
+		if len(output.Tests) != 2 {
+			t.Fatalf("wrong length of Tests slice, got %d, want %d", len(output.Tests), 2)
+		}
+
+		for _, test := range output.Tests {
+			if test.TaskID != 0 {
+				t.Errorf("wrong task ID found, got %d, want 0", test.TaskID)
+			}
+		}
+	})
 }

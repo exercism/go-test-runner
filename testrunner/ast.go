@@ -9,6 +9,7 @@ import (
 	"go/printer"
 	"go/token"
 	"log"
+	"regexp"
 	"strconv"
 	"strings"
 )
@@ -29,23 +30,44 @@ type subTestAstInfo struct {
 }
 
 // return the code of the "test" function from a file
-func getFuncCode(test string, fstr string) string {
+func getFuncCodeAndTaskID(test string, fstr string) (string, uint64) {
 	fset := token.NewFileSet()
 	ppc := parser.ParseComments
 	file, err := parser.ParseFile(fset, fstr, nil, ppc)
 	if err != nil {
 		log.Printf("warning: '%s' not parsed from '%s': %s", test, fstr, err)
-		return ""
+		return "", 0
 	}
 	for _, d := range file.Decls {
 		if f, ok := d.(*ast.FuncDecl); ok && f.Name.Name == test {
+			taskID := findTaskID(f.Doc)
 			fun := &printer.CommentedNode{Node: f, Comments: file.Comments}
 			var buf bytes.Buffer
 			printer.Fprint(&buf, fset, fun)
-			return buf.String()
+			return buf.String(), taskID
 		}
 	}
-	return ""
+	return "", 0
+}
+
+var taskIDFormat = regexp.MustCompile(`testRunnerTaskID=([0-9]+)`)
+
+// findTaskID checks whether there is a task ID set in a function comment,
+// e.g. "testRunnerTaskID=2".
+// If no task ID was identified, 0 is returned.
+func findTaskID(doc *ast.CommentGroup) uint64 {
+	matches := taskIDFormat.FindStringSubmatch(doc.Text())
+	if len(matches) != 2 {
+		return 0
+	}
+
+	taskID, err := strconv.ParseUint(matches[1], 10, 64)
+	if err != nil {
+		log.Println("warning: failed to parse testRunnerTaskID value")
+		return 0
+	}
+
+	return taskID
 }
 
 // generate simplified test code corresponding to a subtest
