@@ -196,7 +196,7 @@ There are two ways the test runner can assign task ids for concept exercises.
 
 ### Implicit Task Id Assignment
 
-If `"enableTaskIds": true` was set but there are no explicit task ids found in the test file, the test runner will automatically assign task ids.
+If `"taskIdsEnabled": true` was set but there are no explicit task ids found in the test file, the test runner will automatically assign task ids.
 It assumes each parent test corresponds to one task and will assign task id 1 to the first parent test and its sub-tests, task id 2 to the next one etc.
 
 For most concept exercises, we have this 1 to 1 relationship between tests and tasks.
