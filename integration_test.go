@@ -2,7 +2,6 @@ package main
 
 import (
 	"bytes"
-	"fmt"
 	"go/build"
 	"os"
 	"os/exec"
@@ -130,8 +129,6 @@ func TestIntegration(t *testing.T) {
 			for _, replacement := range regexReplacements {
 				result = replacement.regexp.ReplaceAllString(result, replacement.replaceStr)
 			}
-
-			fmt.Println(result)
 
 			expected, err := os.ReadFile(tt.expected)
 			require.NoError(t, err, "failed to read expected result file")
