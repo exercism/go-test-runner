@@ -1,0 +1,6 @@
+{
+	"status": "error",
+	"version": 3,
+	"message": "panic: Please implement this function\n\ngoroutine 1 [running]:\npov.New(...)\n\tPATH_PLACEHOLDER/testrunner/testdata/practice/pkg_level_error/pkg_level_error.go:9\npov.init()\n\tPATH_PLACEHOLDER/testrunner/testdata/practice/pkg_level_error/helper_test.go:17 \nFAIL\tpov\t0.004s\n",
+	"tests": []
+}

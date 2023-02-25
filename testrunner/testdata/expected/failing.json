@@ -1,0 +1,12 @@
+{
+	"status": "fail",
+	"version": 3,
+	"tests": [
+		{
+			"name": "TestTrivialFail",
+			"status": "fail",
+			"test_code": "// Trivial failing test example\nfunc TestTrivialFail(t *testing.T) {\n\tif false != true {\n\t\tt.Fatal(\"Intentional test failure\")\n\t}\n\tfmt.Println(\"sample failing test output\")\n}",
+			"message": "\n=== RUN   TestTrivialFail\n\n    failing_test.go:11: Intentional test failure\n\n--- FAIL: TestTrivialFail \n"
+		}
+	]
+}
