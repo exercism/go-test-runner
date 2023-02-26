@@ -3,7 +3,7 @@ package testrunner
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"os"
 	"strings"
 	"testing"
 )
@@ -147,7 +147,7 @@ func TestRunTests_passing(t *testing.T) {
 		t.Fatalf("Passing test output not valid json: %s", err)
 	}
 
-	expectedOutput, err := ioutil.ReadFile("./testdata/practice/passing/output.json")
+	expectedOutput, err := os.ReadFile("./testdata/practice/passing/output.json")
 	if err != nil {
 		t.Fatalf("Passing test failed to read test file: %s", err)
 	}
