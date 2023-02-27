@@ -1,6 +1,7 @@
 package testrunner
 
 import (
+	"runtime"
 	"strings"
 	"testing"
 )
@@ -36,6 +37,11 @@ func TestSplitTestName(t *testing.T) {
 }
 
 func TestFindTestFile(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		// The test data is set up for non-windows file paths currently.
+		t.Skip()
+	}
+
 	tests := []struct {
 		name     string
 		testName string
