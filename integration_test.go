@@ -5,7 +5,9 @@ import (
 	"go/build"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"regexp"
+	"runtime"
 	"strings"
 	"testing"
 
@@ -120,15 +122,7 @@ func TestIntegration(t *testing.T) {
 			resultBytes, err := os.ReadFile("./outdir/results.json")
 			require.NoError(t, err, "failed to read results")
 
-			result := string(resultBytes)
-
-			result = strings.ReplaceAll(result, goExe, "PATH_PLACEHOLDER")
-			result = strings.ReplaceAll(result, currentDir, "PATH_PLACEHOLDER")
-			result = strings.ReplaceAll(result, goRoot, "PATH_PLACEHOLDER")
-
-			for _, replacement := range regexReplacements {
-				result = replacement.regexp.ReplaceAllString(result, replacement.replaceStr)
-			}
+			result := sanitizeResult(string(resultBytes), []string{goExe, currentDir, goRoot})
 
 			expected, err := os.ReadFile(tt.expected)
 			require.NoError(t, err, "failed to read expected result file")
@@ -136,4 +130,43 @@ func TestIntegration(t *testing.T) {
 			assert.JSONEq(t, string(expected), result)
 		})
 	}
+}
+
+func sanitizeResult(s string, paths []string) string {
+	result := s
+
+	for _, p := range pathVariations(paths) {
+		result = strings.ReplaceAll(result, p, "PATH_PLACEHOLDER")
+	}
+
+	if runtime.GOOS == "windows" {
+		result = strings.ReplaceAll(result, `\n.//`, `\n./`)
+		result = strings.ReplaceAll(result, `\n.\\`, `\n./`)
+		result = strings.ReplaceAll(result, `\n.\`, `\n./`)
+	}
+
+	for _, replacement := range regexReplacements {
+		result = replacement.regexp.ReplaceAllString(result, replacement.replaceStr)
+	}
+
+	return result
+}
+
+func pathVariations(paths []string) []string {
+	result := []string{}
+	for _, p := range paths {
+		normalizedPath := filepath.ToSlash(p)
+		result = append(result, normalizedPath)
+
+		if runtime.GOOS == "windows" {
+			// On windows, the paths that are included in the test results can have
+			// various formats. We try to include all variants here so we catch
+			// everything when we do the replace later.
+			result = append(result, strings.ReplaceAll(normalizedPath, "/", "//"))
+			result = append(result, strings.ReplaceAll(normalizedPath, "/", `\`))
+			result = append(result, strings.ReplaceAll(normalizedPath, "/", `\\`))
+		}
+	}
+
+	return result
 }
