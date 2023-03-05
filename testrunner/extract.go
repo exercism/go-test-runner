@@ -2,8 +2,8 @@ package testrunner
 
 import (
 	"fmt"
-	"io/ioutil"
 	"log"
+	"os"
 	"path/filepath"
 	"strings"
 )
@@ -12,7 +12,7 @@ import (
 // https://blog.golang.org/subtests#:~:text=The%20full%20name%20of%20a,first%20argument%20to%20Run%20otherwise.
 func splitTestName(testName string) (string, string) {
 	t := strings.Split(testName, "/")
-	if 1 == len(t) {
+	if len(t) == 1 {
 		return t[0], ""
 	}
 	return t[0], t[1]
@@ -21,7 +21,7 @@ func splitTestName(testName string) (string, string) {
 // Search a code path and return the file containing the test argument
 func findTestFile(testName string, codePath string) string {
 	test, _ := splitTestName(testName)
-	files, err := ioutil.ReadDir(codePath)
+	files, err := os.ReadDir(codePath)
 	if err != nil {
 		log.Printf("warning: input_dir '%s' cannot be read: %s", codePath, err)
 		return ""
@@ -30,7 +30,7 @@ func findTestFile(testName string, codePath string) string {
 	for _, f := range files {
 		if strings.HasSuffix(f.Name(), "_test.go") {
 			testpath := filepath.Join(codePath, f.Name())
-			fh, err := ioutil.ReadFile(testpath)
+			fh, err := os.ReadFile(testpath)
 			if err != nil {
 				log.Printf("warning: test file '%s' read failed: %s", testpath, err)
 			}
@@ -48,12 +48,12 @@ func findTestFile(testName string, codePath string) string {
 func ExtractTestCodeAndTaskID(testName string, testFile string) (string, uint64) {
 	test, subtest := splitTestName(testName)
 	tc, taskID := getFuncCodeAndTaskID(test, testFile)
-	if 0 == len(subtest) {
+	if len(subtest) == 0 {
 		return tc, taskID
 	}
 	defer handleASTPanic()
 	subtc := getSubCode(test, subtest, tc, testFile)
-	if 0 == len(subtc) {
+	if len(subtc) == 0 {
 		return tc, taskID
 	}
 	return subtc, taskID

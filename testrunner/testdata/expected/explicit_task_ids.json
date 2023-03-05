@@ -13,42 +13,42 @@
 			"name": "TestSimpleSubtest/ parse ace",
 			"status": "pass",
 			"test_code": "// Some other comment\n// testRunnerTaskID=2\nfunc TestSimpleSubtest(t *testing.T) {\n\ttt := struct {\n\t\tname string\n\t\tcard string\n\t\twant int\n\t}{\n\t\tname: \"parse ace\",\n\t\tcard: \"ace\",\n\t\twant: 11,\n\t}\n\n\tif got := ParseCard(tt.card); got != tt.want {\n\t\tt.Errorf(\"ParseCard(%s) = %d, want %d\", tt.card, got, tt.want)\n\t}\n\n}",
-			"message": "\n=== RUN   TestSimpleSubtest/parse_ace\n\n    --- PASS: TestSimpleSubtest/parse_ace \n",
+			"message": "\n=== RUN   TestSimpleSubtest/parse_ace\n\n--- PASS: TestSimpleSubtest/parse_ace \n",
 			"task_id": 2
 		},
 		{
 			"name": "TestSimpleSubtest2/ parse ace",
 			"status": "pass",
 			"test_code": "// testRunnerTaskID=2 More text here\nfunc TestSimpleSubtest2(t *testing.T) {\n\ttt := struct {\n\t\tname string\n\t\tcard string\n\t\twant int\n\t}{\n\t\tname: \"parse ace\",\n\t\tcard: \"ace\",\n\t\twant: 11,\n\t}\n\n\tif got := ParseCard(tt.card); got != tt.want {\n\t\tt.Errorf(\"ParseCard(%s) = %d, want %d\", tt.card, got, tt.want)\n\t}\n\n}",
-			"message": "\n=== RUN   TestSimpleSubtest2/parse_ace\n\n    --- PASS: TestSimpleSubtest2/parse_ace \n",
+			"message": "\n=== RUN   TestSimpleSubtest2/parse_ace\n\n--- PASS: TestSimpleSubtest2/parse_ace \n",
 			"task_id": 2
 		},
 		{
 			"name": "TestParseCard/ parse two",
 			"status": "pass",
 			"test_code": "// testRunnerTaskID=1\n// Some other comment\nfunc TestParseCard(t *testing.T) {\n\ttt := struct {\n\t\tname string\n\t\tcard string\n\t\twant int\n\t}{\n\t\tname: \"parse two\",\n\t\tcard: \"two\",\n\t\twant: 2,\n\t}\n\n\tif got := ParseCard(tt.card); got != tt.want {\n\t\tt.Errorf(\"ParseCard(%s) = %d, want %d\", tt.card, got, tt.want)\n\t}\n\n}",
-			"message": "\n=== RUN   TestParseCard/parse_two\n\n    --- PASS: TestParseCard/parse_two \n",
+			"message": "\n=== RUN   TestParseCard/parse_two\n\n--- PASS: TestParseCard/parse_two \n",
 			"task_id": 1
 		},
 		{
 			"name": "TestParseCard/ parse jack",
 			"status": "pass",
 			"test_code": "// testRunnerTaskID=1\n// Some other comment\nfunc TestParseCard(t *testing.T) {\n\ttt := struct {\n\t\tname string\n\t\tcard string\n\t\twant int\n\t}{\n\t\tname: \"parse jack\",\n\t\tcard: \"jack\",\n\t\twant: 10,\n\t}\n\n\tif got := ParseCard(tt.card); got != tt.want {\n\t\tt.Errorf(\"ParseCard(%s) = %d, want %d\", tt.card, got, tt.want)\n\t}\n\n}",
-			"message": "\n=== RUN   TestParseCard/parse_jack\n\n    --- PASS: TestParseCard/parse_jack \n",
+			"message": "\n=== RUN   TestParseCard/parse_jack\n\n--- PASS: TestParseCard/parse_jack \n",
 			"task_id": 1
 		},
 		{
 			"name": "TestParseCard/ parse king",
 			"status": "pass",
 			"test_code": "// testRunnerTaskID=1\n// Some other comment\nfunc TestParseCard(t *testing.T) {\n\ttt := struct {\n\t\tname string\n\t\tcard string\n\t\twant int\n\t}{\n\t\tname: \"parse king\",\n\t\tcard: \"king\",\n\t\twant: 10,\n\t}\n\n\tif got := ParseCard(tt.card); got != tt.want {\n\t\tt.Errorf(\"ParseCard(%s) = %d, want %d\", tt.card, got, tt.want)\n\t}\n\n}",
-			"message": "\n=== RUN   TestParseCard/parse_king\n\n    --- PASS: TestParseCard/parse_king \n",
+			"message": "\n=== RUN   TestParseCard/parse_king\n\n--- PASS: TestParseCard/parse_king \n",
 			"task_id": 1
 		},
 		{
 			"name": "TestBlackjack/ blackjack with ten (ace first)",
 			"status": "fail",
 			"test_code": "// testRunnerTaskID=3\nfunc TestBlackjack(t *testing.T) {\n\tsomeAssignment := \"test\"\n\tfmt.Println(someAssignment)\n\n\ttype hand struct {\n\t\tcard1, card2 string\n\t}\n\ttt := struct {\n\t\tname string\n\t\thand hand\n\t\twant bool\n\t}{\n\t\tname: \"blackjack with ten (ace first)\",\n\t\thand: hand{card1: \"ace\", card2: \"ten\"},\n\t\twant: true,\n\t}\n\n\t_ = \"literally anything\"\n\n\tgot := IsBlackjack(tt.hand.card1, tt.hand.card2)\n\tif got != tt.want {\n\t\tt.Errorf(\"IsBlackjack(%s, %s) = %t, want %t\", tt.hand.card1, tt.hand.card2, got, tt.want)\n\t}\n\n\t// Additional statements should be included\n\tfmt.Println(\"the whole block\")\n\tfmt.Println(\"should be returned\")\n}",
-			"message": "\n=== RUN   TestBlackjack/blackjack_with_ten_(ace_first)\n\n    --- FAIL: TestBlackjack/blackjack_with_ten_(ace_first) \n\npanic: Please implement the IsBlackjack function [recovered]\n\n\tpanic: Please implement the IsBlackjack function\n\n\n\ngoroutine x [running]:\n\ntesting.tRunner.func1.2({, })\n\n\tPATH_PLACEHOLDER/src/testing/testing.go \n\ntesting.tRunner.func1()\n\n\tPATH_PLACEHOLDER/src/testing/testing.go \n\npanic({, })\n\n\tPATH_PLACEHOLDER/src/runtime/panic.go \n\nconditionals.IsBlackjack(...)\n\n\tPATH_PLACEHOLDER/testrunner/testdata/concept/explicit_task_ids/conditionals.go\n\nconditionals.TestBlackjack.func1?)\n\n\tPATH_PLACEHOLDER/testrunner/testdata/concept/explicit_task_ids/conditionals_test.go \n\ntesting.tRunner, \n\n\tPATH_PLACEHOLDER/src/testing/testing.go \n\ncreated by testing.(*T).Run\n\n\tPATH_PLACEHOLDER/src/testing/testing.go \n",
+			"message": "\n=== RUN   TestBlackjack/blackjack_with_ten_(ace_first)\n\n--- FAIL: TestBlackjack/blackjack_with_ten_(ace_first) \n\npanic: Please implement the IsBlackjack function [recovered]\n\n\tpanic: Please implement the IsBlackjack function\n\n\n\ngoroutine x [running]:\n\ntesting.tRunner.func1.2({, })\n\n\tPATH_PLACEHOLDER/src/testing/testing.go \n\ntesting.tRunner.func1()\n\n\tPATH_PLACEHOLDER/src/testing/testing.go \n\npanic({, })\n\n\tPATH_PLACEHOLDER/src/runtime/panic.go \n\nconditionals.IsBlackjack(...)\n\n\tPATH_PLACEHOLDER/testrunner/testdata/concept/explicit_task_ids/conditionals.go\n\nconditionals.TestBlackjack.func1?)\n\n\tPATH_PLACEHOLDER/testrunner/testdata/concept/explicit_task_ids/conditionals_test.go \n\ntesting.tRunner, \n\n\tPATH_PLACEHOLDER/src/testing/testing.go \n\ncreated by testing.(*T).Run\n\n\tPATH_PLACEHOLDER/src/testing/testing.go \n",
 			"task_id": 3
 		}
 	]

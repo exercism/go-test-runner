@@ -10,6 +10,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"regexp"
 	"strings"
 	"time"
 )
@@ -215,6 +216,8 @@ func buildTests(lines bytes.Buffer, input_dir string) ([]testResult, error) {
 	return results, nil
 }
 
+var parentTestMsg = regexp.MustCompile(`(?s)=== RUN\s*Test.*--- (?:FAIL|PASS): Test.*? \(.*?\)\s(.*)`)
+
 // removeObsoleteParentTests cleans up the list of test results. The parent test
 // would just repeat the same code that is shown for the sub tests but would not
 // contain the result of the assertions. This is confusing for students. So if a
@@ -228,10 +231,28 @@ func removeObsoleteParentTests(tests []testResult) []testResult {
 		}
 	}
 
+	// If the parent test includes a message (besides the standard "RUN ... PASS/FAIL ...")
+	// we keep that message in a map.
+	testNameToMsg := map[string]string{}
 	results := []testResult{}
 	for _, test := range tests {
 		if !namesOfObsoleteTests[test.Name] {
 			results = append(results, test)
+		} else {
+			match := parentTestMsg.FindStringSubmatch(test.Message)
+			if len(match) == 2 && len(strings.TrimSpace(match[1])) > 0 {
+				testNameToMsg[test.Name] = match[1]
+			}
+		}
+	}
+
+	// We add the message we found on the parent to the first subtest
+	// for that parent.
+	for i, test := range results {
+		parentName, _ := splitTestName(test.Name)
+		if testNameToMsg[parentName] != "" {
+			results[i].Message += testNameToMsg[parentName]
+			delete(testNameToMsg, parentName)
 		}
 	}
 
