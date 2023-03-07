@@ -18,15 +18,13 @@ func splitTestName(testName string) (string, string) {
 	return t[0], t[1]
 }
 
-// Search a code path and return the file containing the test argument
-func findTestFile(testName string, codePath string) string {
-	test, _ := splitTestName(testName)
+func FindTestFile(codePath string) string {
 	files, err := os.ReadDir(codePath)
 	if err != nil {
 		log.Printf("warning: input_dir '%s' cannot be read: %s", codePath, err)
 		return ""
 	}
-	testdef := fmt.Sprintf("func %s", test)
+
 	for _, f := range files {
 		if strings.HasSuffix(f.Name(), "_test.go") {
 			testpath := filepath.Join(codePath, f.Name())
@@ -34,29 +32,32 @@ func findTestFile(testName string, codePath string) string {
 			if err != nil {
 				log.Printf("warning: test file '%s' read failed: %s", testpath, err)
 			}
-			// Text processing is easier than using AST and should be reliable enough
-			if strings.Contains(string(fh), testdef) {
+
+			// We need to check we found the file that actually contains the tests and not only the
+			// generated test cases (cases_test.go).
+			// Text processing is easier than using AST and should be reliable enough.
+			if strings.Contains(string(fh), "func Test") {
 				return testpath
 			}
 		}
 	}
-	log.Printf("warning: test %s not found in input_dir '%s'", codePath, test)
+	log.Printf("error: test file not found in input_dir '%s'", codePath)
 	return ""
 }
 
 // return the associated test function code from the given test file
-func ExtractTestCodeAndTaskID(testName string, testFile string) (string, uint64) {
+func ExtractTestCodeAndTaskID(rootLevelTests map[string]rootLevelTest, testName string) (string, uint64) {
 	test, subtest := splitTestName(testName)
-	tc, taskID := getFuncCodeAndTaskID(test, testFile)
+	rootLevelTest := rootLevelTests[test]
 	if len(subtest) == 0 {
-		return tc, taskID
+		return rootLevelTest.code, rootLevelTest.taskID
 	}
 	defer handleASTPanic()
-	subtc := getSubCode(test, subtest, tc, testFile)
+	subtc := getSubCode(test, subtest, rootLevelTest.code, rootLevelTest.fileName)
 	if len(subtc) == 0 {
-		return tc, taskID
+		return rootLevelTest.code, rootLevelTest.taskID
 	}
-	return subtc, taskID
+	return subtc, rootLevelTest.taskID
 }
 
 func handleASTPanic() {

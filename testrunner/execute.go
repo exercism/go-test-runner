@@ -84,7 +84,7 @@ func getStructure(lines bytes.Buffer, input_dir string, ver int, taskIDsEnabled 
 		}
 	}()
 
-	tests, err := buildTests(lines, input_dir)
+	tests, err := processTestResults(lines, input_dir)
 	if err != nil {
 		report.Status = statErr
 		report.Message = err.Error()
@@ -117,14 +117,17 @@ func getStructure(lines bytes.Buffer, input_dir string, ver int, taskIDsEnabled 
 	return report
 }
 
-func buildTests(lines bytes.Buffer, input_dir string) ([]testResult, error) {
+func processTestResults(lines bytes.Buffer, input_dir string) ([]testResult, error) {
 	var (
 		results         = []testResult{}
 		resultIdxByName = make(map[string]int)
-		testFileMap     = make(map[string]string)
 		failMsg         [][]byte
 		pkgLevelMsg     string
 	)
+
+	testFile := FindTestFile(input_dir)
+	rootLevelTests := FindAllRootLevelTests(testFile)
+	rootLevelTestsMap := ConvertToMapByTestName(rootLevelTests)
 
 	scanner := bufio.NewScanner(&lines)
 	for scanner.Scan() {
@@ -147,19 +150,14 @@ func buildTests(lines bytes.Buffer, input_dir string) ([]testResult, error) {
 
 		if line.Test == "" {
 			// We collect messages that do not belong to an individual test and use them later
-			// as error message in case there was no test level messsage found at all.
+			// as error message in case there was no test level message found at all.
 			pkgLevelMsg += line.Output
 			continue
 		}
 
 		switch line.Action {
 		case "run":
-			tf, cached := testFileMap[line.Test]
-			if !cached {
-				tf = findTestFile(line.Test, input_dir)
-				testFileMap[line.Test] = tf
-			}
-			tc, taskID := ExtractTestCodeAndTaskID(line.Test, tf)
+			tc, taskID := ExtractTestCodeAndTaskID(rootLevelTestsMap, line.Test)
 			result := testResult{
 				Name: line.Test,
 				// Use error as default state in case no other state is found later.
@@ -213,7 +211,46 @@ func buildTests(lines bytes.Buffer, input_dir string) ([]testResult, error) {
 		return nil, errors.New(pkgLevelMsg)
 	}
 
+	results = addNonExecutedTests(rootLevelTests, results)
+
 	return results, nil
+}
+
+func addNonExecutedTests(rootLevelTests []rootLevelTest, results []testResult) []testResult {
+	insertResultAfterIdx := -1
+	for parentIdx, parentTest := range rootLevelTests {
+		parentFound := false
+		for resultIdx := range results {
+			parentName, _ := splitTestName(results[resultIdx].Name)
+			if rootLevelTests[parentIdx].name == parentName {
+				insertResultAfterIdx = resultIdx
+				parentFound = true
+			}
+		}
+
+		if parentFound {
+			continue
+		}
+
+		newResult := testResult{
+			Name:     parentTest.name,
+			Status:   statErr,
+			TestCode: parentTest.code,
+			Message:  "This test was not executed.",
+		}
+
+		if insertResultAfterIdx < 0 {
+			results = append([]testResult{newResult}, results...)
+		} else if insertResultAfterIdx >= len(results)-1 {
+			results = append(results, newResult)
+		} else {
+			secondPart := append([]testResult{newResult}, results[insertResultAfterIdx+1:]...)
+			results = append(results[:insertResultAfterIdx+1], secondPart...)
+		}
+		insertResultAfterIdx++
+	}
+
+	return results
 }
 
 var parentTestMsg = regexp.MustCompile(`(?s)=== RUN\s*Test.*--- (?:FAIL|PASS): Test.*? \(.*?\)\s(.*)`)
