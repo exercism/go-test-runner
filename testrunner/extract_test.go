@@ -1,7 +1,7 @@
 package testrunner
 
 import (
-	"runtime"
+	"path/filepath"
 	"strings"
 	"testing"
 )
@@ -37,11 +37,6 @@ func TestSplitTestName(t *testing.T) {
 }
 
 func TestFindTestFile(t *testing.T) {
-	if runtime.GOOS == "windows" {
-		// The test data is set up for non-windows file paths currently.
-		t.Skip()
-	}
-
 	tests := []struct {
 		name     string
 		testName string
@@ -51,13 +46,13 @@ func TestFindTestFile(t *testing.T) {
 		{
 			name:     "found test",
 			testName: "TestBlackjack",
-			codePath: "testdata/concept/conditionals",
-			fileName: "testdata/concept/conditionals/conditionals_test.go",
+			codePath: filepath.Join("testdata", "concept", "conditionals"),
+			fileName: filepath.Join("testdata", "concept", "conditionals", "conditionals_test.go"),
 		}, {
 			name:     "found subtest",
 			testName: "TestBlackjack/blackjack_with_jack_(ace_first)",
-			codePath: "testdata/concept/conditionals",
-			fileName: "testdata/concept/conditionals/conditionals_test.go",
+			codePath: filepath.Join("testdata", "concept", "conditionals"),
+			fileName: filepath.Join("testdata", "concept", "conditionals", "conditionals_test.go"),
 		}, {
 			name:     "missing test",
 			testName: "TestMissing",
@@ -76,7 +71,7 @@ func TestFindTestFile(t *testing.T) {
 }
 
 func TestExtractTestCode(t *testing.T) {
-	tf := "testdata/concept/conditionals/conditionals_test.go"
+	tf := filepath.Join("testdata", "concept", "conditionals", "conditionals_test.go")
 	tests := []struct {
 		name     string
 		testName string
@@ -168,7 +163,7 @@ func TestExtractTestCode(t *testing.T) {
 		}, {
 			name:     "missing / not found subtest",
 			testName: "TestParseCard/parse_missing_subtests",
-			testFile: "testdata/concept/conditionals/conditionals_test.go",
+			testFile: filepath.Join("testdata", "concept", "conditionals", "conditionals_test.go"),
 			code: `func TestParseCard(t *testing.T) {
 	tests := []struct {
 		name string

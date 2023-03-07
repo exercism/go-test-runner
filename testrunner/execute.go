@@ -360,7 +360,7 @@ func testCompiles(input_dir string) bool {
 		Path: goExe,
 		// "Official" recommendation for compiling but not running the tests
 		// https://github.com/golang/go/issues/46712#issuecomment-859949958
-		Args:   []string{goExe, "test", "-c", "-o", "/dev/null"},
+		Args:   []string{goExe, "test", "-c", "-o", os.DevNull},
 		Stdout: &stdout,
 		Stderr: &stderr,
 	}

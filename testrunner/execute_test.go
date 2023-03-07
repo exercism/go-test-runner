@@ -3,6 +3,7 @@ package testrunner
 import (
 	"encoding/json"
 	"fmt"
+	"path/filepath"
 	"strings"
 	"testing"
 )
@@ -16,7 +17,7 @@ const version = 3
 */
 
 func TestRunTests_RuntimeError(t *testing.T) {
-	input_dir := "./testdata/practice/runtime_error"
+	input_dir := filepath.Join("testdata", "practice", "runtime_error")
 	cmdres, ok := runTests(input_dir, nil)
 	if !ok {
 		fmt.Printf("runtime error test expected to return ok: %s", cmdres.String())
@@ -46,7 +47,8 @@ func TestRunTests_RuntimeError(t *testing.T) {
 }
 
 func TestRunTests_RaceDetector(t *testing.T) {
-	input_dir := "./testdata/practice/race"
+
+	input_dir := filepath.Join("testdata", "practice", "race")
 	cmdres, ok := runTests(input_dir, []string{"-race"})
 	if !ok {
 		fmt.Printf("race detector test expected to return ok: %s", cmdres.String())
