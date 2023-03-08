@@ -47,12 +47,10 @@ var regexReplacements = []struct {
 }
 
 func TestIntegration(t *testing.T) {
-
 	tests := []struct {
 		inputDir string
 		expected string
 	}{
-
 		{
 			// This test case covers the case the code under test does not compile,
 			// i.e. "go build ." would fail.
@@ -92,6 +90,10 @@ func TestIntegration(t *testing.T) {
 		{
 			inputDir: filepath.Join("testrunner", "testdata", "concept", "missing_task_ids"),
 			expected: filepath.Join("testrunner", "testdata", "expected", "missing_task_ids.json"),
+		},
+		{
+			inputDir: filepath.Join("testrunner", "testdata", "concept", "non_executed_tests"),
+			expected: filepath.Join("testrunner", "testdata", "expected", "non_executed_tests.json"),
 		},
 	}
 

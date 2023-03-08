@@ -39,32 +39,25 @@ func TestSplitTestName(t *testing.T) {
 func TestFindTestFile(t *testing.T) {
 	tests := []struct {
 		name     string
-		testName string
 		codePath string
 		fileName string
 	}{
 		{
-			name:     "found test",
-			testName: "TestBlackjack",
+			name:     "found single test file",
+			codePath: filepath.Join("testdata", "practice", "passing"),
+			fileName: filepath.Join("testdata", "practice", "passing", "passing_test.go"),
+		},
+		{
+			name:     "found correct test file if there are two",
 			codePath: filepath.Join("testdata", "concept", "conditionals"),
 			fileName: filepath.Join("testdata", "concept", "conditionals", "conditionals_test.go"),
-		}, {
-			name:     "found subtest",
-			testName: "TestBlackjack/blackjack_with_jack_(ace_first)",
-			codePath: filepath.Join("testdata", "concept", "conditionals"),
-			fileName: filepath.Join("testdata", "concept", "conditionals", "conditionals_test.go"),
-		}, {
-			name:     "missing test",
-			testName: "TestMissing",
-			codePath: "",
-			fileName: "",
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if tf := findTestFile(tt.testName, tt.codePath); tf != tt.fileName {
-				t.Errorf("findTestFile(%v, %v) = %v; want %v",
-					tt.testName, tt.codePath, tf, tt.fileName)
+			if tf := FindTestFile(tt.codePath); tf != tt.fileName {
+				t.Errorf("findTestFile(%v) = %v; want %v",
+					tt.codePath, tf, tt.fileName)
 			}
 		})
 	}
@@ -72,6 +65,8 @@ func TestFindTestFile(t *testing.T) {
 
 func TestExtractTestCode(t *testing.T) {
 	tf := filepath.Join("testdata", "concept", "conditionals", "conditionals_test.go")
+	rootLevelTests := FindAllRootLevelTests(tf)
+	rootLevelTestsMap := ConvertToMapByTestName(rootLevelTests)
 	tests := []struct {
 		name     string
 		testName string
@@ -198,7 +193,7 @@ func TestExtractTestCode(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			code, _ := ExtractTestCodeAndTaskID(tt.testName, tt.testFile)
+			code, _ := ExtractTestCodeAndTaskID(rootLevelTestsMap, tt.testName)
 
 			actualLines := strings.Split(code, "\n")
 			expectedLines := strings.Split(tt.code, "\n")

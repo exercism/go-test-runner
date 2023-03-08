@@ -225,5 +225,13 @@ Otherwise no task ids will be set at all.
 
 Finding the task id is robust again other comments before or after or in the same line as the `testRunnerTaskID` comment, see the [conditionals-with-task-ids test file][task-id-comments-examples] for examples.
 
+## Known limitations
+
+Besides what is mentioned in the open issues, the test runner has the following limitations currently.
+
+- The test runner assumes all test functions `func Test...` can be found in one file.
+- The `cases_test.go` file is ignored when extracting the code for the test.
+- Sub-tests need to follow a certain format, see details above.
+
 [task-id]: https://exercism.org/docs/building/tooling/test-runners/interface#h-task-id
 [task-id-comments-examples]: https://github.com/exercism/go-test-runner/tree/main/testrunner/testdata/concept/conditionals-with-task-ids
