@@ -84,7 +84,7 @@ func getStructure(lines bytes.Buffer, input_dir string, ver int, taskIDsEnabled 
 		}
 	}()
 
-	tests, err := processTestResults(lines, input_dir)
+	tests, err := processTestResults(lines, input_dir, taskIDsEnabled)
 	if err != nil {
 		report.Status = statErr
 		report.Message = err.Error()
@@ -117,7 +117,7 @@ func getStructure(lines bytes.Buffer, input_dir string, ver int, taskIDsEnabled 
 	return report
 }
 
-func processTestResults(lines bytes.Buffer, input_dir string) ([]testResult, error) {
+func processTestResults(lines bytes.Buffer, input_dir string, taskIDsEnabled bool) ([]testResult, error) {
 	var (
 		results         = []testResult{}
 		resultIdxByName = make(map[string]int)
@@ -211,7 +211,11 @@ func processTestResults(lines bytes.Buffer, input_dir string) ([]testResult, err
 		return nil, errors.New(pkgLevelMsg)
 	}
 
-	results = addNonExecutedTests(rootLevelTests, results)
+	if taskIDsEnabled {
+		// We only need this for the V3 UI with task ids.
+		// It causes issues for some practice exercises.
+		results = addNonExecutedTests(rootLevelTests, results)
+	}
 
 	return results, nil
 }
