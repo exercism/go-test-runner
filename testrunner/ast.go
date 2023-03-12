@@ -36,9 +36,10 @@ type rootLevelTest struct {
 	taskID   uint64
 }
 
+// FindAllRootLevelTests parses the test file and extracts the name,
+// test code and task id for each top level test (parent test) in the file.
 func FindAllRootLevelTests(fileName string) []rootLevelTest {
 	defer handleASTPanic()
-	// Create a map from test name to data for the test for easy retrieval later on.
 	tests := []rootLevelTest{}
 	fset := token.NewFileSet()
 	ppc := parser.ParseComments
