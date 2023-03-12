@@ -84,7 +84,7 @@ func getStructure(lines bytes.Buffer, input_dir string, ver int, taskIDsEnabled 
 		}
 	}()
 
-	tests, err := processTestResults(lines, input_dir)
+	tests, err := processTestResults(lines, input_dir, taskIDsEnabled)
 	if err != nil {
 		report.Status = statErr
 		report.Message = err.Error()
@@ -117,7 +117,7 @@ func getStructure(lines bytes.Buffer, input_dir string, ver int, taskIDsEnabled 
 	return report
 }
 
-func processTestResults(lines bytes.Buffer, input_dir string) ([]testResult, error) {
+func processTestResults(lines bytes.Buffer, input_dir string, taskIDsEnabled bool) ([]testResult, error) {
 	var (
 		results         = []testResult{}
 		resultIdxByName = make(map[string]int)
@@ -211,27 +211,42 @@ func processTestResults(lines bytes.Buffer, input_dir string) ([]testResult, err
 		return nil, errors.New(pkgLevelMsg)
 	}
 
-	results = addNonExecutedTests(rootLevelTests, results)
+	if taskIDsEnabled {
+		// We only need this for the V3 UI with task ids.
+		// It causes issues for some practice exercises.
+		results = addNonExecutedTests(rootLevelTests, results)
+	}
 
 	return results, nil
 }
 
+// addNonExecutedTests adds tests to the result set that were not executed.
+// They are added with status "error" and special message (this is common in other tracks as well).
+// The function makes sure that the result for non-executed test is inserted in the correct position.
 func addNonExecutedTests(rootLevelTests []rootLevelTest, results []testResult) []testResult {
 	insertResultAfterIdx := -1
 	for parentIdx, parentTest := range rootLevelTests {
 		parentFound := false
+
+		// For the given parent test, check whether the result set already contains
+		// test results for it.
 		for resultIdx := range results {
 			parentName, _ := splitTestName(results[resultIdx].Name)
 			if rootLevelTests[parentIdx].name == parentName {
 				insertResultAfterIdx = resultIdx
 				parentFound = true
+				// No "continue" here, we need to find the index of the last (sub)test result
+				// that belongs to a given parent test name.
 			}
 		}
 
+		// If we found test results for the parent test name,
+		// there is nothing to do.
 		if parentFound {
 			continue
 		}
 
+		// If not, we insert the new test result for the test that was not executed.
 		newResult := testResult{
 			Name:     parentTest.name,
 			Status:   statErr,
