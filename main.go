@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"io/ioutil"
 	"log"
 	"os"
 	"path/filepath"
@@ -22,7 +23,7 @@ func main() {
 
 	report := testrunner.Execute(input_dir)
 	results := filepath.Join(output_dir, "results.json")
-	err := os.WriteFile(results, report, 0644)
+	err := ioutil.WriteFile(results, report, 0644)
 	if err != nil {
 		log.Fatalf("Failed to write results.json: %s", err)
 	}

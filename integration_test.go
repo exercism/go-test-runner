@@ -54,46 +54,42 @@ func TestIntegration(t *testing.T) {
 		{
 			// This test case covers the case the code under test does not compile,
 			// i.e. "go build ." would fail.
-			inputDir: filepath.Join("testrunner", "testdata", "practice", "broken"),
-			expected: filepath.Join("testrunner", "testdata", "expected", "broken.json"),
+			inputDir: "./testrunner/testdata/practice/broken",
+			expected: "./testrunner/testdata/expected/broken.json",
 		},
 		{
 			// This test case covers the case that the test code does not compile,
 			// i.e. "go build ." would succeed but "go test" returns compilation errors.
-			inputDir: filepath.Join("testrunner", "testdata", "practice", "missing_func"),
-			expected: filepath.Join("testrunner", "testdata", "expected", "missing_func.json"),
+			inputDir: "./testrunner/testdata/practice/missing_func",
+			expected: "./testrunner/testdata/expected/missing_func.json",
 		},
 		{
-			inputDir: filepath.Join("testrunner", "testdata", "practice", "broken_import"),
-			expected: filepath.Join("testrunner", "testdata", "expected", "broken_import.json"),
+			inputDir: "./testrunner/testdata/practice/broken_import",
+			expected: "./testrunner/testdata/expected/broken_import.json",
 		},
 		{
-			inputDir: filepath.Join("testrunner", "testdata", "practice", "passing"),
-			expected: filepath.Join("testrunner", "testdata", "expected", "passing.json"),
+			inputDir: "./testrunner/testdata/practice/passing",
+			expected: "./testrunner/testdata/expected/passing.json",
 		},
 		{
-			inputDir: filepath.Join("testrunner", "testdata", "practice", "pkg_level_error"),
-			expected: filepath.Join("testrunner", "testdata", "expected", "pkg_level_error.json"),
+			inputDir: "./testrunner/testdata/practice/pkg_level_error",
+			expected: "./testrunner/testdata/expected/pkg_level_error.json",
 		},
 		{
-			inputDir: filepath.Join("testrunner", "testdata", "practice", "failing"),
-			expected: filepath.Join("testrunner", "testdata", "expected", "failing.json"),
+			inputDir: "./testrunner/testdata/practice/failing",
+			expected: "./testrunner/testdata/expected/failing.json",
 		},
 		{
-			inputDir: filepath.Join("testrunner", "testdata", "concept", "auto_assigned_task_ids"),
-			expected: filepath.Join("testrunner", "testdata", "expected", "auto_assigned_task_ids.json"),
+			inputDir: "./testrunner/testdata/concept/auto_assigned_task_ids",
+			expected: "./testrunner/testdata/expected/auto_assigned_task_ids.json",
 		},
 		{
-			inputDir: filepath.Join("testrunner", "testdata", "concept", "explicit_task_ids"),
-			expected: filepath.Join("testrunner", "testdata", "expected", "explicit_task_ids.json"),
+			inputDir: "./testrunner/testdata/concept/explicit_task_ids",
+			expected: "./testrunner/testdata/expected/explicit_task_ids.json",
 		},
 		{
-			inputDir: filepath.Join("testrunner", "testdata", "concept", "missing_task_ids"),
-			expected: filepath.Join("testrunner", "testdata", "expected", "missing_task_ids.json"),
-		},
-		{
-			inputDir: filepath.Join("testrunner", "testdata", "concept", "non_executed_tests"),
-			expected: filepath.Join("testrunner", "testdata", "expected", "non_executed_tests.json"),
+			inputDir: "./testrunner/testdata/concept/missing_task_ids",
+			expected: "./testrunner/testdata/expected/missing_task_ids.json",
 		},
 	}
 
@@ -110,7 +106,7 @@ func TestIntegration(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.inputDir, func(t *testing.T) {
-			err := os.RemoveAll("outdir")
+			err := os.RemoveAll("./outdir")
 			require.NoError(t, err, "failed to clean up output directory")
 
 			var stdout, stderr bytes.Buffer
@@ -123,7 +119,7 @@ func TestIntegration(t *testing.T) {
 			err = cmd.Run()
 			require.NoErrorf(t, err, "failed to execute test runner: %s %s", stdout.String(), stderr.String())
 
-			resultBytes, err := os.ReadFile(filepath.Join("outdir", "results.json"))
+			resultBytes, err := os.ReadFile("./outdir/results.json")
 			require.NoError(t, err, "failed to read results")
 
 			result := sanitizeResult(string(resultBytes), []string{goExe, currentDir, goRoot})
