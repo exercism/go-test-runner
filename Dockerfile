@@ -1,4 +1,4 @@
-FROM golang:1.18-alpine3.15
+FROM golang:1.19.7-alpine3.17
 
 # add addtional packages needed for the race detector to work
 RUN apk add --update build-base make 

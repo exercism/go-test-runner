@@ -1,7 +1,7 @@
 package testrunner
 
 import (
-	"runtime"
+	"path/filepath"
 	"strings"
 	"testing"
 )
@@ -37,46 +37,36 @@ func TestSplitTestName(t *testing.T) {
 }
 
 func TestFindTestFile(t *testing.T) {
-	if runtime.GOOS == "windows" {
-		// The test data is set up for non-windows file paths currently.
-		t.Skip()
-	}
-
 	tests := []struct {
 		name     string
-		testName string
 		codePath string
 		fileName string
 	}{
 		{
-			name:     "found test",
-			testName: "TestBlackjack",
-			codePath: "testdata/concept/conditionals",
-			fileName: "testdata/concept/conditionals/conditionals_test.go",
-		}, {
-			name:     "found subtest",
-			testName: "TestBlackjack/blackjack_with_jack_(ace_first)",
-			codePath: "testdata/concept/conditionals",
-			fileName: "testdata/concept/conditionals/conditionals_test.go",
-		}, {
-			name:     "missing test",
-			testName: "TestMissing",
-			codePath: "",
-			fileName: "",
+			name:     "found single test file",
+			codePath: filepath.Join("testdata", "practice", "passing"),
+			fileName: filepath.Join("testdata", "practice", "passing", "passing_test.go"),
+		},
+		{
+			name:     "found correct test file if there are two",
+			codePath: filepath.Join("testdata", "concept", "conditionals"),
+			fileName: filepath.Join("testdata", "concept", "conditionals", "conditionals_test.go"),
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if tf := findTestFile(tt.testName, tt.codePath); tf != tt.fileName {
-				t.Errorf("findTestFile(%v, %v) = %v; want %v",
-					tt.testName, tt.codePath, tf, tt.fileName)
+			if tf := FindTestFile(tt.codePath); tf != tt.fileName {
+				t.Errorf("findTestFile(%v) = %v; want %v",
+					tt.codePath, tf, tt.fileName)
 			}
 		})
 	}
 }
 
 func TestExtractTestCode(t *testing.T) {
-	tf := "testdata/concept/conditionals/conditionals_test.go"
+	tf := filepath.Join("testdata", "concept", "conditionals", "conditionals_test.go")
+	rootLevelTests := FindAllRootLevelTests(tf)
+	rootLevelTestsMap := ConvertToMapByTestName(rootLevelTests)
 	tests := []struct {
 		name     string
 		testName string
@@ -168,7 +158,7 @@ func TestExtractTestCode(t *testing.T) {
 		}, {
 			name:     "missing / not found subtest",
 			testName: "TestParseCard/parse_missing_subtests",
-			testFile: "testdata/concept/conditionals/conditionals_test.go",
+			testFile: filepath.Join("testdata", "concept", "conditionals", "conditionals_test.go"),
 			code: `func TestParseCard(t *testing.T) {
 	tests := []struct {
 		name string
@@ -203,7 +193,7 @@ func TestExtractTestCode(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			code, _ := ExtractTestCodeAndTaskID(tt.testName, tt.testFile)
+			code, _ := ExtractTestCodeAndTaskID(rootLevelTestsMap, tt.testName)
 
 			actualLines := strings.Split(code, "\n")
 			expectedLines := strings.Split(tt.code, "\n")
