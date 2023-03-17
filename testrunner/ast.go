@@ -29,25 +29,49 @@ type subTestAstInfo struct {
 	rangeAstIdx    int
 }
 
-// return the code of the "test" function from a file
-func getFuncCodeAndTaskID(test string, fstr string) (string, uint64) {
+type rootLevelTest struct {
+	name     string
+	fileName string
+	code     string
+	taskID   uint64
+}
+
+// FindAllRootLevelTests parses the test file and extracts the name,
+// test code and task id for each top level test (parent test) in the file.
+func FindAllRootLevelTests(fileName string) []rootLevelTest {
+	defer handleASTPanic()
+	tests := []rootLevelTest{}
 	fset := token.NewFileSet()
 	ppc := parser.ParseComments
-	file, err := parser.ParseFile(fset, fstr, nil, ppc)
+	file, err := parser.ParseFile(fset, fileName, nil, ppc)
 	if err != nil {
-		log.Printf("warning: '%s' not parsed from '%s': %s", test, fstr, err)
-		return "", 0
+		log.Printf("error: not able to parse '%s': %s", fileName, err)
+		return nil
 	}
 	for _, d := range file.Decls {
-		if f, ok := d.(*ast.FuncDecl); ok && f.Name.Name == test {
+		if f, ok := d.(*ast.FuncDecl); ok && strings.HasPrefix(f.Name.Name, "Test") {
 			taskID := findTaskID(f.Doc)
 			fun := &printer.CommentedNode{Node: f, Comments: file.Comments}
 			var buf bytes.Buffer
 			printer.Fprint(&buf, fset, fun)
-			return buf.String(), taskID
+
+			tests = append(tests, rootLevelTest{
+				name:     f.Name.Name,
+				fileName: fileName,
+				code:     buf.String(),
+				taskID:   taskID,
+			})
 		}
 	}
-	return "", 0
+	return tests
+}
+
+func ConvertToMapByTestName(tests []rootLevelTest) map[string]rootLevelTest {
+	result := map[string]rootLevelTest{}
+	for i := range tests {
+		result[tests[i].name] = tests[i]
+	}
+	return result
 }
 
 var taskIDFormat = regexp.MustCompile(`testRunnerTaskID=([0-9]+)`)
