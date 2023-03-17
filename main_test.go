@@ -4,17 +4,12 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
-	"path/filepath"
 	"strings"
 	"testing"
 )
 
 func ExampleMain() {
-	os.Args = []string{
-		"path",
-		filepath.Join("testrunner", "testdata", "practice", "passing"),
-		"outdir",
-	}
+	os.Args = []string{"path", "testrunner/testdata/practice/passing", "outdir"}
 	main()
 	// Output:
 }
@@ -84,9 +79,9 @@ func TestCheckArgs(t *testing.T) {
 		{
 			name:       "broken output_dir",
 			input_dir:  "testrunner",
-			output_dir: filepath.Join("/", "tmp", "broken", "rmme"),
+			output_dir: "/tmp/broken/rmme",
 			ok:         false,
-			msg:        "output_dir " + filepath.Join("/", "tmp", "broken", "rmme") + " does not exist, mkdir failed:",
+			msg:        "output_dir /tmp/broken/rmme does not exist, mkdir failed:",
 		},
 	}
 	for _, tt := range tests {

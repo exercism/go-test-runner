@@ -2,8 +2,8 @@ package testrunner
 
 import (
 	"fmt"
+	"io/ioutil"
 	"log"
-	"os"
 	"path/filepath"
 	"strings"
 )
@@ -12,52 +12,51 @@ import (
 // https://blog.golang.org/subtests#:~:text=The%20full%20name%20of%20a,first%20argument%20to%20Run%20otherwise.
 func splitTestName(testName string) (string, string) {
 	t := strings.Split(testName, "/")
-	if len(t) == 1 {
+	if 1 == len(t) {
 		return t[0], ""
 	}
 	return t[0], t[1]
 }
 
-func FindTestFile(codePath string) string {
-	files, err := os.ReadDir(codePath)
+// Search a code path and return the file containing the test argument
+func findTestFile(testName string, codePath string) string {
+	test, _ := splitTestName(testName)
+	files, err := ioutil.ReadDir(codePath)
 	if err != nil {
 		log.Printf("warning: input_dir '%s' cannot be read: %s", codePath, err)
 		return ""
 	}
-
+	testdef := fmt.Sprintf("func %s", test)
 	for _, f := range files {
 		if strings.HasSuffix(f.Name(), "_test.go") {
 			testpath := filepath.Join(codePath, f.Name())
-			fh, err := os.ReadFile(testpath)
+			fh, err := ioutil.ReadFile(testpath)
 			if err != nil {
 				log.Printf("warning: test file '%s' read failed: %s", testpath, err)
 			}
-
-			// We need to check we found the file that actually contains the tests and not only the
-			// generated test cases (cases_test.go).
-			// Text processing is easier than using AST and should be reliable enough.
-			if strings.Contains(string(fh), "func Test") {
+			// Text processing is easier than using AST and should be reliable enough
+			if strings.Contains(string(fh), testdef) {
 				return testpath
 			}
 		}
 	}
-	log.Printf("error: test file not found in input_dir '%s'", codePath)
+	log.Printf("warning: test %s not found in input_dir '%s'", codePath, test)
 	return ""
 }
 
 // return the associated test function code from the given test file
-func ExtractTestCodeAndTaskID(rootLevelTests map[string]rootLevelTest, testName string) (string, uint64) {
+func ExtractTestCodeAndTaskID(testName string, testFile string) (string, uint64) {
 	test, subtest := splitTestName(testName)
-	rootLevelTest := rootLevelTests[test]
-	if len(subtest) == 0 {
-		return rootLevelTest.code, rootLevelTest.taskID
+	tc, taskID := getFuncCodeAndTaskID(test, testFile)
+	if 0 == len(subtest) {
+		return tc, taskID
 	}
 	defer handleASTPanic()
-	subtc := getSubCode(test, subtest, rootLevelTest.code, rootLevelTest.fileName)
-	if len(subtc) == 0 {
-		return rootLevelTest.code, rootLevelTest.taskID
+	subtc := getSubCode(test, subtest, tc, testFile)
+	if 0 == len(subtc) {
+		return tc, taskID
 	}
-	return subtc, rootLevelTest.taskID
+	return subtc, taskID
 }
 
 func handleASTPanic() {

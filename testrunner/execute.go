@@ -10,7 +10,6 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
-	"regexp"
 	"strings"
 	"time"
 )
@@ -84,7 +83,7 @@ func getStructure(lines bytes.Buffer, input_dir string, ver int, taskIDsEnabled 
 		}
 	}()
 
-	tests, err := processTestResults(lines, input_dir, taskIDsEnabled)
+	tests, err := buildTests(lines, input_dir)
 	if err != nil {
 		report.Status = statErr
 		report.Message = err.Error()
@@ -117,17 +116,14 @@ func getStructure(lines bytes.Buffer, input_dir string, ver int, taskIDsEnabled 
 	return report
 }
 
-func processTestResults(lines bytes.Buffer, input_dir string, taskIDsEnabled bool) ([]testResult, error) {
+func buildTests(lines bytes.Buffer, input_dir string) ([]testResult, error) {
 	var (
 		results         = []testResult{}
 		resultIdxByName = make(map[string]int)
+		testFileMap     = make(map[string]string)
 		failMsg         [][]byte
 		pkgLevelMsg     string
 	)
-
-	testFile := FindTestFile(input_dir)
-	rootLevelTests := FindAllRootLevelTests(testFile)
-	rootLevelTestsMap := ConvertToMapByTestName(rootLevelTests)
 
 	scanner := bufio.NewScanner(&lines)
 	for scanner.Scan() {
@@ -150,14 +146,19 @@ func processTestResults(lines bytes.Buffer, input_dir string, taskIDsEnabled boo
 
 		if line.Test == "" {
 			// We collect messages that do not belong to an individual test and use them later
-			// as error message in case there was no test level message found at all.
+			// as error message in case there was no test level messsage found at all.
 			pkgLevelMsg += line.Output
 			continue
 		}
 
 		switch line.Action {
 		case "run":
-			tc, taskID := ExtractTestCodeAndTaskID(rootLevelTestsMap, line.Test)
+			tf, cached := testFileMap[line.Test]
+			if !cached {
+				tf = findTestFile(line.Test, input_dir)
+				testFileMap[line.Test] = tf
+			}
+			tc, taskID := ExtractTestCodeAndTaskID(line.Test, tf)
 			result := testResult{
 				Name: line.Test,
 				// Use error as default state in case no other state is found later.
@@ -211,64 +212,8 @@ func processTestResults(lines bytes.Buffer, input_dir string, taskIDsEnabled boo
 		return nil, errors.New(pkgLevelMsg)
 	}
 
-	if taskIDsEnabled {
-		// We only need this for the V3 UI with task ids.
-		// It causes issues for some practice exercises.
-		results = addNonExecutedTests(rootLevelTests, results)
-	}
-
 	return results, nil
 }
-
-// addNonExecutedTests adds tests to the result set that were not executed.
-// They are added with status "error" and special message (this is common in other tracks as well).
-// The function makes sure that the result for non-executed test is inserted in the correct position.
-func addNonExecutedTests(rootLevelTests []rootLevelTest, results []testResult) []testResult {
-	insertResultAfterIdx := -1
-	for parentIdx, parentTest := range rootLevelTests {
-		parentFound := false
-
-		// For the given parent test, check whether the result set already contains
-		// test results for it.
-		for resultIdx := range results {
-			parentName, _ := splitTestName(results[resultIdx].Name)
-			if rootLevelTests[parentIdx].name == parentName {
-				insertResultAfterIdx = resultIdx
-				parentFound = true
-				// No "continue" here, we need to find the index of the last (sub)test result
-				// that belongs to a given parent test name.
-			}
-		}
-
-		// If we found test results for the parent test name,
-		// there is nothing to do.
-		if parentFound {
-			continue
-		}
-
-		// If not, we insert the new test result for the test that was not executed.
-		newResult := testResult{
-			Name:     parentTest.name,
-			Status:   statErr,
-			TestCode: parentTest.code,
-			Message:  "This test was not executed.",
-		}
-
-		if insertResultAfterIdx < 0 {
-			results = append([]testResult{newResult}, results...)
-		} else if insertResultAfterIdx >= len(results)-1 {
-			results = append(results, newResult)
-		} else {
-			secondPart := append([]testResult{newResult}, results[insertResultAfterIdx+1:]...)
-			results = append(results[:insertResultAfterIdx+1], secondPart...)
-		}
-		insertResultAfterIdx++
-	}
-
-	return results
-}
-
-var parentTestMsg = regexp.MustCompile(`(?s)=== RUN\s*Test.*--- (?:FAIL|PASS): Test.*? \(.*?\)\s(.*)`)
 
 // removeObsoleteParentTests cleans up the list of test results. The parent test
 // would just repeat the same code that is shown for the sub tests but would not
@@ -283,28 +228,10 @@ func removeObsoleteParentTests(tests []testResult) []testResult {
 		}
 	}
 
-	// If the parent test includes a message (besides the standard "RUN ... PASS/FAIL ...")
-	// we keep that message in a map.
-	testNameToMsg := map[string]string{}
 	results := []testResult{}
 	for _, test := range tests {
 		if !namesOfObsoleteTests[test.Name] {
 			results = append(results, test)
-		} else {
-			match := parentTestMsg.FindStringSubmatch(test.Message)
-			if len(match) == 2 && len(strings.TrimSpace(match[1])) > 0 {
-				testNameToMsg[test.Name] = match[1]
-			}
-		}
-	}
-
-	// We add the message we found on the parent to the first subtest
-	// for that parent.
-	for i, test := range results {
-		parentName, _ := splitTestName(test.Name)
-		if testNameToMsg[parentName] != "" {
-			results[i].Message += testNameToMsg[parentName]
-			delete(testNameToMsg, parentName)
 		}
 	}
 
@@ -412,7 +339,7 @@ func testCompiles(input_dir string) bool {
 		Path: goExe,
 		// "Official" recommendation for compiling but not running the tests
 		// https://github.com/golang/go/issues/46712#issuecomment-859949958
-		Args:   []string{goExe, "test", "-c", "-o", os.DevNull},
+		Args:   []string{goExe, "test", "-c", "-o", "/dev/null"},
 		Stdout: &stdout,
 		Stderr: &stderr,
 	}
