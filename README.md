@@ -8,6 +8,7 @@ This is [Exercism's test runner](https://github.com/exercism/v3-docs/tree/master
 ## Executing the Test Runner
 
 The test runner requires 2 parameters:
+
 - `input_dir`: the path containing the solution to test
 - `output_dir`: the output path for the test results
 
@@ -59,7 +60,7 @@ For troubleshooting / debug you can name the container, run it in interactive mo
 ```bash
 docker run --name exercism-go-test-runner -d -i --network none --read-only -v $(pwd)/testrunner/testdata/practice/gigasecond:/solution -v /tmp:/tmp exercism/go-test-runner gigasecond /solution /tmp
 # You can then access the container as follows:
-docker exec -it --user appuser $(docker ps -q --filter name=exercism-go-test-runner) /bin/sh
+docker exec -it $(docker ps -q --filter name=exercism-go-test-runner) /bin/sh
 ```
 
 ### External Go packages
@@ -81,19 +82,19 @@ A student can have a `go.mod` file declaring only supported dependencies, but if
 
 ## Subtests
 
-The test runner is responsible for [returning the `test_code` field](https://github.com/exercism/v3-docs/blob/master/anatomy/track-tooling/test-runners/interface.md#command), which should be a copy of the test code corresponding to each test result. 
+The test runner is responsible for [returning the `test_code` field](https://github.com/exercism/v3-docs/blob/master/anatomy/track-tooling/test-runners/interface.md#command), which should be a copy of the test code corresponding to each test result.
 
-For top-level tests, the AST is used to return the function code directly. For [tests containing subtests](https://blog.golang.org/subtests), additional processing is required. To ease the burden of advanced AST processing on unstructured / non deterministic test code, subtests should adhere to the following specification. **If a test employs subtests, do not mix it with test or other code outside of the Run() call.** 
+For top-level tests, the AST is used to return the function code directly. For [tests containing subtests](https://blog.golang.org/subtests), additional processing is required. To ease the burden of advanced AST processing on unstructured / non deterministic test code, subtests should adhere to the following specification. **If a test employs subtests, do not mix it with test or other code outside of the Run() call.**
 
 - Subtests not meeting the spec will be treated as top-level tests, with the entire test function code being returned for every subtest.
 - Assertions/outputs made outside of the Run() call will not be included in the result JSON because the "parent" tests are removed from the results if subtests are present. (Parent test reports were confusing to students because they did not include any assertion or `fmt.Println` output.)
 
 At some point, we may [implement a static analyzer](https://rauljordan.com/2020/11/01/custom-static-analysis-in-go-part-1.html) which warns the exercise submitter when they commit subtests not meeting the specification.
 
-
 ### Subtest Format Specification
 
 The specification is annotated in the comments of the following example test:
+
 ```go
 func TestParseCard(t *testing.T) {
   // There can be additional code here, it will be shown for all subtests.
@@ -138,6 +139,7 @@ func TestParseCard(t *testing.T) {
 ```
 
 The test code above will result in the following `test_code` field, corresponding to the test named `TestParseCard/parse_queen`:
+
 ```go
 tt := struct {
   name string
@@ -162,9 +164,7 @@ This is done via the `.meta/config.json` file of the exercise. See example below
 {
   // ...
   "custom": {
-    "testingFlags": [
-      "-race"
-    ]
+    "testingFlags": ["-race"]
   }
 }
 ```
