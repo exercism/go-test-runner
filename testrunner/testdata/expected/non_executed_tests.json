@@ -6,28 +6,28 @@
 			"name": "TestPreparationTime/ Preparation time for many layers with custom average time",
 			"status": "pass",
 			"test_code": "func TestPreparationTime(t *testing.T) {\n\ttt := preparationTimeTests{\n\t\tname: \"Preparation time for many layers with custom average time\",\n\t\tlayers: []string{\n\t\t\t\"sauce\",\n\t\t\t\"noodles\",\n\t\t\t\"béchamel\",\n\t\t\t\"meat\",\n\t\t\t\"mozzarella\",\n\t\t\t\"noodles\",\n\t\t\t\"ricotta\",\n\t\t\t\"eggplant\",\n\t\t\t\"béchamel\",\n\t\t\t\"noodles\",\n\t\t\t\"sauce\",\n\t\t\t\"mozzarella\",\n\t\t},\n\t\ttime:     1,\n\t\texpected: 12,\n\t}\n\n\tif got := PreparationTime(tt.layers, tt.time); got != tt.expected {\n\t\tt.Errorf(\"PreparationTime(%v, %d) = %d; want %d\", tt.layers, tt.time, got, tt.expected)\n\t}\n\n}",
-			"message": "\n=== RUN   TestPreparationTime/Preparation_time_for_many_layers_with_custom_average_time\n\n    --- PASS: TestPreparationTime/Preparation_time_for_many_layers_with_custom_average_time \n",
+			"message": "\n=== RUN   TestPreparationTime/Preparation_time_for_many_layers_with_custom_average_time\n\n--- PASS: TestPreparationTime/Preparation_time_for_many_layers_with_custom_average_time \n",
 			"task_id": 1
 		},
 		{
 			"name": "TestPreparationTime/ Preparation time for few layers",
 			"status": "pass",
 			"test_code": "func TestPreparationTime(t *testing.T) {\n\ttt := preparationTimeTests{\n\t\tname: \"Preparation time for few layers\",\n\t\tlayers: []string{\n\t\t\t\"sauce\",\n\t\t\t\"noodles\",\n\t\t},\n\t\ttime:     3,\n\t\texpected: 6,\n\t}\n\n\tif got := PreparationTime(tt.layers, tt.time); got != tt.expected {\n\t\tt.Errorf(\"PreparationTime(%v, %d) = %d; want %d\", tt.layers, tt.time, got, tt.expected)\n\t}\n\n}",
-			"message": "\n=== RUN   TestPreparationTime/Preparation_time_for_few_layers\n\n    --- PASS: TestPreparationTime/Preparation_time_for_few_layers \n",
+			"message": "\n=== RUN   TestPreparationTime/Preparation_time_for_few_layers\n\n--- PASS: TestPreparationTime/Preparation_time_for_few_layers \n",
 			"task_id": 1
 		},
 		{
 			"name": "TestPreparationTime/ Preparation time for default case",
 			"status": "pass",
 			"test_code": "func TestPreparationTime(t *testing.T) {\n\ttt := preparationTimeTests{\n\t\tname: \"Preparation time for default case\",\n\t\tlayers: []string{\n\t\t\t\"sauce\",\n\t\t\t\"noodles\",\n\t\t},\n\t\ttime:     0,\n\t\texpected: 4,\n\t}\n\n\tif got := PreparationTime(tt.layers, tt.time); got != tt.expected {\n\t\tt.Errorf(\"PreparationTime(%v, %d) = %d; want %d\", tt.layers, tt.time, got, tt.expected)\n\t}\n\n}",
-			"message": "\n=== RUN   TestPreparationTime/Preparation_time_for_default_case\n\n    --- PASS: TestPreparationTime/Preparation_time_for_default_case \n",
+			"message": "\n=== RUN   TestPreparationTime/Preparation_time_for_default_case\n\n--- PASS: TestPreparationTime/Preparation_time_for_default_case \n",
 			"task_id": 1
 		},
 		{
 			"name": "TestQuantities/ few layers",
 			"status": "fail",
 			"test_code": "func TestQuantities(t *testing.T) {\n\ttt := quantitiesTest{\n\t\tname:       \"few layers\",\n\t\tlayers:     []string{\"noodles\", \"sauce\", \"noodles\"},\n\t\texpNoodles: 100,\n\t\texpSauce:   0.2,\n\t}\n\n\tgotNoodles, gotSauce := Quantities(tt.layers)\n\tif gotNoodles != tt.expNoodles {\n\t\tt.Errorf(\"quantities(%v) = %d noodles; want %d\", tt.layers, gotNoodles, tt.expNoodles)\n\t}\n\tif gotSauce != tt.expSauce {\n\t\tt.Errorf(\"quantities(%v) = %f sauce; want %f\", tt.layers, gotSauce, tt.expSauce)\n\t}\n\n}",
-			"message": "\n=== RUN   TestQuantities/few_layers\n\n    --- FAIL: TestQuantities/few_layers \n\npanic: Please implement [recovered]\n\n\tpanic: Please implement\n\n\n\ngoroutine x [running]:\n\ntesting.tRunner.func1.2({, })\n\n\tPATH_PLACEHOLDER/src/testing/testing.go \n\ntesting.tRunner.func1()\n\n\tPATH_PLACEHOLDER/src/testing/testing.go \n\npanic({, })\n\n\tPATH_PLACEHOLDER/src/runtime/panic.go \n\nlasagna.Quantities(...)\n\n\tPATH_PLACEHOLDER/testrunner/testdata/concept/non_executed_tests/lasagna_master.go\n\nlasagna.TestQuantities.func1?)\n\n\tPATH_PLACEHOLDER/testrunner/testdata/concept/non_executed_tests/lasagna_master_test.go \n\ntesting.tRunner, \n\n\tPATH_PLACEHOLDER/src/testing/testing.go \n\ncreated by testing.(*T).Run\n\n\tPATH_PLACEHOLDER/src/testing/testing.go \n",
+			"message": "\n=== RUN   TestQuantities/few_layers\n\n--- FAIL: TestQuantities/few_layers \n\npanic: Please implement [recovered]\n\n\tpanic: Please implement\n\n\n\ngoroutine x [running]:\n\ntesting.tRunner.func1.2({, })\n\n\tPATH_PLACEHOLDER/src/testing/testing.go \n\ntesting.tRunner.func1()\n\n\tPATH_PLACEHOLDER/src/testing/testing.go \n\npanic({, })\n\n\tPATH_PLACEHOLDER/src/runtime/panic.go \n\nlasagna.Quantities(...)\n\n\tPATH_PLACEHOLDER/testrunner/testdata/concept/non_executed_tests/lasagna_master.go\n\nlasagna.TestQuantities.func1?)\n\n\tPATH_PLACEHOLDER/testrunner/testdata/concept/non_executed_tests/lasagna_master_test.go \n\ntesting.tRunner, \n\n\tPATH_PLACEHOLDER/src/testing/testing.go \n\ncreated by testing.(*T).Run\n\n\tPATH_PLACEHOLDER/src/testing/testing.go \n",
 			"task_id": 2
 		},
 		{
