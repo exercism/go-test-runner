@@ -11,7 +11,7 @@ RUN adduser --disabled-password appuser
 COPY . /opt/test-runner
 RUN chown -R appuser /opt/test-runner
 
-# Build and tun the testrunner with appuser
+# Build and run the testrunner with appuser
 USER appuser
 
 # Install external packages
