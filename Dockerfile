@@ -8,11 +8,14 @@ RUN adduser --disabled-password appuser
 
 # Copy the source code into the container
 # and make sure appuser owns all of it
-COPY . /opt/test-runner
-RUN chown -R appuser /opt/test-runner
+COPY --chown=appuser:appuser . /opt/test-runner
 
 # Build and run the testrunner with appuser
 USER appuser
+
+# This populates the build cache with the standard library
+# and command packages so future compilations are faster
+RUN go build std cmd
 
 # Install external packages
 WORKDIR /opt/test-runner/external-packages
