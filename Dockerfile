@@ -20,6 +20,8 @@ RUN go build std cmd
 # Install external packages
 WORKDIR /opt/test-runner/external-packages
 RUN go mod download
+# Populate the build cache with the external packages
+RUN go build ./...
 
 # Build the test runner
 WORKDIR /opt/test-runner
