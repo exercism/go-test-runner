@@ -104,6 +104,26 @@ func TestExtractTestCode(t *testing.T) {
 
 }`,
 		}, {
+			name:     "working simple subtest with no field name in test data variable",
+			testName: "TestSimpleSubtest_NoFieldName/parse_ace",
+			testFile: tf,
+			code: `func TestSimpleSubtest_NoFieldName(t *testing.T) {
+	tt := struct {
+		name string
+		card string
+		want int
+	}{
+		"parse ace",
+		"ace",
+		11,
+	}
+	
+	if got := ParseCard(tt.card); got != tt.want {
+		t.Errorf("ParseCard(%s) = %d, want %d", tt.card, got, tt.want)
+	}
+
+}`,
+		}, {
 			name:     "working subtest",
 			testName: "TestParseCard/parse_jack",
 			testFile: tf,

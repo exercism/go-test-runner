@@ -204,21 +204,25 @@ func processTestDataAssgn(sub string, assgn *ast.AssignStmt) (*subTData, bool) {
 		log.Println("warning: test data assignment must be a composite literal")
 		return nil, false
 	}
-
+	fieldNames := getAllFieldNames(rhs1.Type)
 	// Loop for all of the test data structs
 	for _, td := range rhs1.Elts {
 		vals, ok := td.(*ast.CompositeLit)
 		if !ok {
 			continue
 		}
-
 		// Loop for each KeyValueExpr in the struct
-		for _, tv := range vals.Elts {
+		for i, tv := range vals.Elts {
+			var key string
+			var value *ast.BasicLit
 			kv, ok := tv.(*ast.KeyValueExpr)
-			if !ok {
-				continue
+			if ok {
+				key = kv.Key.(*ast.Ident).Name
+				value, ok = kv.Value.(*ast.BasicLit)
+			} else if fieldNames != nil {
+				key = fieldNames[i]
+				value, ok = tv.(*ast.BasicLit)
 			}
-			value, ok := kv.Value.(*ast.BasicLit)
 			if !ok {
 				continue
 			}
@@ -230,7 +234,7 @@ func processTestDataAssgn(sub string, assgn *ast.AssignStmt) (*subTData, bool) {
 			altsub := strconv.Quote(strings.Replace(sub, "_", " ", -1))
 			// still check the original subtest name, in case it had underscores
 			if strconv.Quote(sub) == value.Value || altsub == value.Value {
-				metadata.subTKey = kv.Key.(*ast.Ident).Name // subtest data "name"
+				metadata.subTKey = key // subtest data "name"
 				// TD is the "parent" array of KeyValueExprs
 				metadata.TD = vals // test data element for the requested subtest
 				// re-assign the type from an array to the underlying test data struct
@@ -241,6 +245,21 @@ func processTestDataAssgn(sub string, assgn *ast.AssignStmt) (*subTData, bool) {
 	}
 	log.Printf("warning: could not find test data struct for subtest: %s", sub)
 	return nil, false
+}
+// getAllFieldNames returns all the field names of anonymous struct type
+// not support for named struct type yet
+func getAllFieldNames(exp ast.Expr) []string {
+	structType, ok := exp.(*ast.ArrayType).Elt.(*ast.StructType)
+	if !ok {
+		return nil
+	}
+	keys := make([]string, 0)
+	for _, field := range structType.Fields.List {
+		for _, name := range field.Names {
+			keys = append(keys, name.Name)
+		}
+	}
+	return keys
 }
 
 // validate the range over the test data and store associated metadata
