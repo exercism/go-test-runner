@@ -32,6 +32,32 @@ func TestSimpleSubtest(t *testing.T) {
 	}
 }
 
+func TestSimpleSubtest_NoFieldName(t *testing.T) {
+	myTests := []struct {
+		name string
+		card string
+		want int
+	}{
+		{
+			"parse ace",
+			"ace",
+			11,
+		},
+		{
+			"parse two",
+			"two",
+			2,
+		},
+	}
+	for _, tt := range myTests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := ParseCard(tt.card); got != tt.want {
+				t.Errorf("ParseCard(%s) = %d, want %d", tt.card, got, tt.want)
+			}
+		})
+	}
+}
+
 func TestParseCard(t *testing.T) {
 	tests := []struct {
 		name string
