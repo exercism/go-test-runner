@@ -191,6 +191,8 @@ func TestExtractTestCode(t *testing.T) {
   }`,
 		},
 	}
+	tests = append(tests, testsDataSeparate...)
+	tests = append(tests, testsMultiAssignStmt...)
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			code, _ := ExtractTestCodeAndTaskID(rootLevelTestsMap, tt.testName)
@@ -220,4 +222,109 @@ func TestExtractTestCode(t *testing.T) {
 			}
 		})
 	}
+}
+
+var testsDataSeparate = []struct {
+	name     string
+	testName string
+	testFile string
+	code     string
+}{
+	{
+		name:     "working subtest with separate test data",
+		testName: "TestParseCard_Separate/parse_jack",
+		testFile: filepath.Join("testdata", "concept", "conditionals", "conditionals_test.go"),
+		code: `func TestParseCard_Separate(t *testing.T) {
+	tt := struct {
+		name string
+		card string
+		want int
+	}{
+		name: "parse jack",
+		card: "jack",
+		want: 10,
+	}
+	
+	if got := ParseCard(tt.card); got != tt.want {
+		t.Errorf("ParseCard(%s) = %d, want %d", tt.card, got, tt.want)
+	}
+
+}`,
+	}, {
+		name:     "missing / not found subtest with separate test data",
+		testName: "TestParseCard_Separate/parse_missing_subtests",
+		testFile: filepath.Join("testdata", "concept", "conditionals", "conditionals_test.go"),
+		code: `func TestParseCard_Separate(t *testing.T) {
+	for _, tt := range testcases {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := ParseCard(tt.card); got != tt.want {
+				t.Errorf("ParseCard(%s) = %d, want %d", tt.card, got, tt.want)
+			}
+		})
+	}
+}`,
+	}, {
+		name:     "multiple statements with separate test data",
+		testName: "TestBlackjack_Separate/blackjack_with_ten_(ace_first)",
+		testFile: filepath.Join("testdata", "concept", "conditionals", "conditionals_test.go"),
+		code: `func TestBlackjack_Separate(t *testing.T) {
+	tt := struct {
+		name string
+		hand hand
+		want bool
+	}{
+		name: "blackjack with ten (ace first)",
+		hand: hand{card1: "ace", card2: "ten"},
+		want: true,
+	}
+	someAssignment := "test"
+	fmt.Println(someAssignment)
+
+	_ = "literally anything"
+
+	got := IsBlackjack(tt.hand.card1, tt.hand.card2)
+	if got != tt.want {
+		t.Errorf("IsBlackjack(%s, %s) = %t, want %t", tt.hand.card1, tt.hand.card2, got, tt.want)
+	}
+
+	// Additional statements should be included
+	fmt.Println("the whole block")
+	fmt.Println("should be returned")
+}`,
+	},
+}
+var testsMultiAssignStmt = []struct {
+	name     string
+	testName string
+	testFile string
+	code     string
+}{
+	{
+		name:     "subtest with arbitrary test data variable name, additional assign statements above and below test data",
+		testName: "TestSubtest_MultiAssignStmt/parse_king",
+		testFile: filepath.Join("testdata", "concept", "conditionals", "conditionals_test.go"),
+		code: `func TestSubtest_MultiAssignStmt(t *testing.T) {
+	someAssignment := "test"
+
+	tt := struct {
+		name string
+		card string
+		want int
+	}{
+		name: "parse king",
+		card: "king",
+		want: 10,
+	}
+
+	someAssignment2 := "test2"
+
+	if got := ParseCard(tt.card); got != tt.want {
+		t.Errorf("ParseCard(%s) = %d, want %d", tt.card, got, tt.want)
+	}
+
+	// Additional statements should be included
+	fmt.Println("the whole block")
+	fmt.Println("should be returned")
+}`,
+	},
 }
