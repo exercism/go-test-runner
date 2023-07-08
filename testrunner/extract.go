@@ -53,7 +53,7 @@ func ExtractTestCodeAndTaskID(rootLevelTests map[string]rootLevelTest, testName 
 		return rootLevelTest.code, rootLevelTest.taskID
 	}
 	defer handleASTPanic()
-	subtc := getSubCode(test, subtest, rootLevelTest.code, rootLevelTest.fileName)
+	subtc := getSubCode(test, subtest, rootLevelTest.code, rootLevelTest.fileName, rootLevelTest.pkgName)
 	if len(subtc) == 0 {
 		return rootLevelTest.code, rootLevelTest.taskID
 	}
