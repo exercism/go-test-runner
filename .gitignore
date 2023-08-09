@@ -11,3 +11,5 @@ log/*
 outdir
 
 !/bin/*.sh
+
+tests/**/results.json
