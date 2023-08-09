@@ -10,4 +10,4 @@ log/*
 
 outdir
 
-!bin/run-in-docker.sh
+!/bin/*.sh

@@ -1,0 +1,6 @@
+{
+	"status": "error",
+	"version": 3,
+	"message": "leap.go:1:1: expected 'package', found 'EOF'\n'/usr/local/go/bin/go test --short --json .' returned exit code 1: exit status 1",
+	"tests": null
+}
