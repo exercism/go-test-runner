@@ -10,4 +10,6 @@ log/*
 
 outdir
 
-!bin/run-in-docker.sh
+!/bin/*.sh
+
+tests/**/results.json

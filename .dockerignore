@@ -1,4 +1,6 @@
 bin/run-in-docker.sh
+bin/run-tests-in-docker.sh
+bin/run-tests.sh
 .appends
 .git
 .github
@@ -6,3 +8,4 @@ bin/run-in-docker.sh
 .gitattributes
 .dockerignore
 Dockerfile
+tests/
