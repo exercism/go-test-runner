@@ -76,6 +76,10 @@ func TestIntegration(t *testing.T) {
 			expected: filepath.Join("testrunner", "testdata", "expected", "pkg_level_error.json"),
 		},
 		{
+			inputDir: filepath.Join("testrunner", "testdata", "practice", "separate_cases_file"),
+			expected: filepath.Join("testrunner", "testdata", "expected", "separate_cases_file.json"),
+		},
+		{
 			inputDir: filepath.Join("testrunner", "testdata", "practice", "failing"),
 			expected: filepath.Join("testrunner", "testdata", "expected", "failing.json"),
 		},

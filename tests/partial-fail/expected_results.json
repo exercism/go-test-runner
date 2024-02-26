@@ -5,55 +5,55 @@
 		{
 			"name": "TestLeapYears/ year not divisible by 4 in common year",
 			"status": "pass",
-			"test_code": "func TestLeapYears(t *testing.T) {\n\tfor _, tc := range testCases {\n\t\tt.Run(tc.description, func(t *testing.T) {\n\t\t\tactual := IsLeapYear(tc.year)\n\t\t\tif actual != tc.expected {\n\t\t\t\tt.Fatalf(\"IsLeapYear(%d) = %t, want %t\", tc.year, actual, tc.expected)\n\t\t\t}\n\t\t})\n\t}\n}",
+			"test_code": "func TestLeapYears(t *testing.T) {\n\ttc := struct {\n\t\tdescription string\n\t\tyear        int\n\t\texpected    bool\n\t}{\n\t\tdescription: \"year not divisible by 4 in common year\",\n\t\tyear:        2015,\n\t\texpected:    false,\n\t}\n\n\tactual := IsLeapYear(tc.year)\n\tif actual != tc.expected {\n\t\tt.Fatalf(\"IsLeapYear(%d) = %t, want %t\", tc.year, actual, tc.expected)\n\t}\n\n}",
 			"message": "\n=== RUN   TestLeapYears/year_not_divisible_by_4_in_common_year\n\n--- PASS: TestLeapYears/year_not_divisible_by_4_in_common_year (0.00s)\n"
 		},
 		{
 			"name": "TestLeapYears/ year divisible by 2, not divisible by 4 in common year",
 			"status": "pass",
-			"test_code": "func TestLeapYears(t *testing.T) {\n\tfor _, tc := range testCases {\n\t\tt.Run(tc.description, func(t *testing.T) {\n\t\t\tactual := IsLeapYear(tc.year)\n\t\t\tif actual != tc.expected {\n\t\t\t\tt.Fatalf(\"IsLeapYear(%d) = %t, want %t\", tc.year, actual, tc.expected)\n\t\t\t}\n\t\t})\n\t}\n}",
+			"test_code": "func TestLeapYears(t *testing.T) {\n\ttc := struct {\n\t\tdescription string\n\t\tyear        int\n\t\texpected    bool\n\t}{\n\t\tdescription: \"year divisible by 2, not divisible by 4 in common year\",\n\t\tyear:        1970,\n\t\texpected:    false,\n\t}\n\n\tactual := IsLeapYear(tc.year)\n\tif actual != tc.expected {\n\t\tt.Fatalf(\"IsLeapYear(%d) = %t, want %t\", tc.year, actual, tc.expected)\n\t}\n\n}",
 			"message": "\n=== RUN   TestLeapYears/year_divisible_by_2,_not_divisible_by_4_in_common_year\n\n--- PASS: TestLeapYears/year_divisible_by_2,_not_divisible_by_4_in_common_year (0.00s)\n"
 		},
 		{
 			"name": "TestLeapYears/ year divisible by 4, not divisible by 100 in leap year",
 			"status": "pass",
-			"test_code": "func TestLeapYears(t *testing.T) {\n\tfor _, tc := range testCases {\n\t\tt.Run(tc.description, func(t *testing.T) {\n\t\t\tactual := IsLeapYear(tc.year)\n\t\t\tif actual != tc.expected {\n\t\t\t\tt.Fatalf(\"IsLeapYear(%d) = %t, want %t\", tc.year, actual, tc.expected)\n\t\t\t}\n\t\t})\n\t}\n}",
+			"test_code": "func TestLeapYears(t *testing.T) {\n\ttc := struct {\n\t\tdescription string\n\t\tyear        int\n\t\texpected    bool\n\t}{\n\t\tdescription: \"year divisible by 4, not divisible by 100 in leap year\",\n\t\tyear:        1996,\n\t\texpected:    true,\n\t}\n\n\tactual := IsLeapYear(tc.year)\n\tif actual != tc.expected {\n\t\tt.Fatalf(\"IsLeapYear(%d) = %t, want %t\", tc.year, actual, tc.expected)\n\t}\n\n}",
 			"message": "\n=== RUN   TestLeapYears/year_divisible_by_4,_not_divisible_by_100_in_leap_year\n\n--- PASS: TestLeapYears/year_divisible_by_4,_not_divisible_by_100_in_leap_year (0.00s)\n"
 		},
 		{
 			"name": "TestLeapYears/ year divisible by 4 and 5 is still a leap year",
 			"status": "pass",
-			"test_code": "func TestLeapYears(t *testing.T) {\n\tfor _, tc := range testCases {\n\t\tt.Run(tc.description, func(t *testing.T) {\n\t\t\tactual := IsLeapYear(tc.year)\n\t\t\tif actual != tc.expected {\n\t\t\t\tt.Fatalf(\"IsLeapYear(%d) = %t, want %t\", tc.year, actual, tc.expected)\n\t\t\t}\n\t\t})\n\t}\n}",
+			"test_code": "func TestLeapYears(t *testing.T) {\n\ttc := struct {\n\t\tdescription string\n\t\tyear        int\n\t\texpected    bool\n\t}{\n\t\tdescription: \"year divisible by 4 and 5 is still a leap year\",\n\t\tyear:        1960,\n\t\texpected:    true,\n\t}\n\n\tactual := IsLeapYear(tc.year)\n\tif actual != tc.expected {\n\t\tt.Fatalf(\"IsLeapYear(%d) = %t, want %t\", tc.year, actual, tc.expected)\n\t}\n\n}",
 			"message": "\n=== RUN   TestLeapYears/year_divisible_by_4_and_5_is_still_a_leap_year\n\n--- PASS: TestLeapYears/year_divisible_by_4_and_5_is_still_a_leap_year (0.00s)\n"
 		},
 		{
 			"name": "TestLeapYears/ year divisible by 100, not divisible by 400 in common year",
 			"status": "pass",
-			"test_code": "func TestLeapYears(t *testing.T) {\n\tfor _, tc := range testCases {\n\t\tt.Run(tc.description, func(t *testing.T) {\n\t\t\tactual := IsLeapYear(tc.year)\n\t\t\tif actual != tc.expected {\n\t\t\t\tt.Fatalf(\"IsLeapYear(%d) = %t, want %t\", tc.year, actual, tc.expected)\n\t\t\t}\n\t\t})\n\t}\n}",
+			"test_code": "func TestLeapYears(t *testing.T) {\n\ttc := struct {\n\t\tdescription string\n\t\tyear        int\n\t\texpected    bool\n\t}{\n\t\tdescription: \"year divisible by 100, not divisible by 400 in common year\",\n\t\tyear:        2100,\n\t\texpected:    false,\n\t}\n\n\tactual := IsLeapYear(tc.year)\n\tif actual != tc.expected {\n\t\tt.Fatalf(\"IsLeapYear(%d) = %t, want %t\", tc.year, actual, tc.expected)\n\t}\n\n}",
 			"message": "\n=== RUN   TestLeapYears/year_divisible_by_100,_not_divisible_by_400_in_common_year\n\n--- PASS: TestLeapYears/year_divisible_by_100,_not_divisible_by_400_in_common_year (0.00s)\n"
 		},
 		{
 			"name": "TestLeapYears/ year divisible by 100 but not by 3 is still not a leap year",
 			"status": "pass",
-			"test_code": "func TestLeapYears(t *testing.T) {\n\tfor _, tc := range testCases {\n\t\tt.Run(tc.description, func(t *testing.T) {\n\t\t\tactual := IsLeapYear(tc.year)\n\t\t\tif actual != tc.expected {\n\t\t\t\tt.Fatalf(\"IsLeapYear(%d) = %t, want %t\", tc.year, actual, tc.expected)\n\t\t\t}\n\t\t})\n\t}\n}",
+			"test_code": "func TestLeapYears(t *testing.T) {\n\ttc := struct {\n\t\tdescription string\n\t\tyear        int\n\t\texpected    bool\n\t}{\n\t\tdescription: \"year divisible by 100 but not by 3 is still not a leap year\",\n\t\tyear:        1900,\n\t\texpected:    false,\n\t}\n\n\tactual := IsLeapYear(tc.year)\n\tif actual != tc.expected {\n\t\tt.Fatalf(\"IsLeapYear(%d) = %t, want %t\", tc.year, actual, tc.expected)\n\t}\n\n}",
 			"message": "\n=== RUN   TestLeapYears/year_divisible_by_100_but_not_by_3_is_still_not_a_leap_year\n\n--- PASS: TestLeapYears/year_divisible_by_100_but_not_by_3_is_still_not_a_leap_year (0.00s)\n"
 		},
 		{
 			"name": "TestLeapYears/ year divisible by 400 is leap year",
 			"status": "fail",
-			"test_code": "func TestLeapYears(t *testing.T) {\n\tfor _, tc := range testCases {\n\t\tt.Run(tc.description, func(t *testing.T) {\n\t\t\tactual := IsLeapYear(tc.year)\n\t\t\tif actual != tc.expected {\n\t\t\t\tt.Fatalf(\"IsLeapYear(%d) = %t, want %t\", tc.year, actual, tc.expected)\n\t\t\t}\n\t\t})\n\t}\n}",
+			"test_code": "func TestLeapYears(t *testing.T) {\n\ttc := struct {\n\t\tdescription string\n\t\tyear        int\n\t\texpected    bool\n\t}{\n\t\tdescription: \"year divisible by 400 is leap year\",\n\t\tyear:        2000,\n\t\texpected:    true,\n\t}\n\n\tactual := IsLeapYear(tc.year)\n\tif actual != tc.expected {\n\t\tt.Fatalf(\"IsLeapYear(%d) = %t, want %t\", tc.year, actual, tc.expected)\n\t}\n\n}",
 			"message": "\n=== RUN   TestLeapYears/year_divisible_by_400_is_leap_year\n\n    leap_test.go:10: IsLeapYear(2000) = false, want true\n\n--- FAIL: TestLeapYears/year_divisible_by_400_is_leap_year (0.00s)\n"
 		},
 		{
 			"name": "TestLeapYears/ year divisible by 400 but not by 125 is still a leap year",
 			"status": "fail",
-			"test_code": "func TestLeapYears(t *testing.T) {\n\tfor _, tc := range testCases {\n\t\tt.Run(tc.description, func(t *testing.T) {\n\t\t\tactual := IsLeapYear(tc.year)\n\t\t\tif actual != tc.expected {\n\t\t\t\tt.Fatalf(\"IsLeapYear(%d) = %t, want %t\", tc.year, actual, tc.expected)\n\t\t\t}\n\t\t})\n\t}\n}",
+			"test_code": "func TestLeapYears(t *testing.T) {\n\ttc := struct {\n\t\tdescription string\n\t\tyear        int\n\t\texpected    bool\n\t}{\n\t\tdescription: \"year divisible by 400 but not by 125 is still a leap year\",\n\t\tyear:        2400,\n\t\texpected:    true,\n\t}\n\n\tactual := IsLeapYear(tc.year)\n\tif actual != tc.expected {\n\t\tt.Fatalf(\"IsLeapYear(%d) = %t, want %t\", tc.year, actual, tc.expected)\n\t}\n\n}",
 			"message": "\n=== RUN   TestLeapYears/year_divisible_by_400_but_not_by_125_is_still_a_leap_year\n\n    leap_test.go:10: IsLeapYear(2400) = false, want true\n\n--- FAIL: TestLeapYears/year_divisible_by_400_but_not_by_125_is_still_a_leap_year (0.00s)\n"
 		},
 		{
 			"name": "TestLeapYears/ year divisible by 200, not divisible by 400 in common year",
 			"status": "pass",
-			"test_code": "func TestLeapYears(t *testing.T) {\n\tfor _, tc := range testCases {\n\t\tt.Run(tc.description, func(t *testing.T) {\n\t\t\tactual := IsLeapYear(tc.year)\n\t\t\tif actual != tc.expected {\n\t\t\t\tt.Fatalf(\"IsLeapYear(%d) = %t, want %t\", tc.year, actual, tc.expected)\n\t\t\t}\n\t\t})\n\t}\n}",
+			"test_code": "func TestLeapYears(t *testing.T) {\n\ttc := struct {\n\t\tdescription string\n\t\tyear        int\n\t\texpected    bool\n\t}{\n\t\tdescription: \"year divisible by 200, not divisible by 400 in common year\",\n\t\tyear:        1800,\n\t\texpected:    false,\n\t}\n\n\tactual := IsLeapYear(tc.year)\n\tif actual != tc.expected {\n\t\tt.Fatalf(\"IsLeapYear(%d) = %t, want %t\", tc.year, actual, tc.expected)\n\t}\n\n}",
 			"message": "\n=== RUN   TestLeapYears/year_divisible_by_200,_not_divisible_by_400_in_common_year\n\n--- PASS: TestLeapYears/year_divisible_by_200,_not_divisible_by_400_in_common_year (0.00s)\n"
 		}
 	]
