@@ -1,6 +1,6 @@
 {
 	"status": "error",
 	"version": 3,
-	"message": "# leap [leap.test]\n./leap.go:3:16: invalid character U+0024 '$'\n./leap.go:3:17: invalid character U+0040 '@'\n./leap.go:3:18: invalid character U+0023 '#'\n./leap.go:3:19: invalid character U+0024 '$'\n./leap.go:3:20: syntax error: unexpected ^, expected (\nFAIL\tleap [build failed]\n'/usr/local/go/bin/go test --short --json .' returned exit code 1: exit status 1",
+	"message": "FAIL\tleap [build failed]\n# leap [leap.test]\n./leap.go:3:16: invalid character U+0024 '$'\n./leap.go:3:17: invalid character U+0040 '@'\n./leap.go:3:18: invalid character U+0023 '#'\n./leap.go:3:19: invalid character U+0024 '$'\n./leap.go:3:20: syntax error: unexpected ^, expected (\n'/usr/local/go/bin/go test --short --json .' returned exit code 1: exit status 1",
 	"tests": null
 }
