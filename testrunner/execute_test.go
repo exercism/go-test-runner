@@ -15,18 +15,25 @@ const version = 3
 /*
 	Ideally, tests should be performed via running the tool and checking the resulting json
 	file matches the expected output. This is done in integration_test.go in the project root.
-	Tests should only be added in this file is comparing the full output is not possible for some reason.
+	Tests should only be added in this file if comparing the full output is not possible for some reason.
 */
 
 func TestRunTests_RuntimeError(t *testing.T) {
 	input_dir := filepath.Join("testdata", "practice", "runtime_error")
+
 	cmdres, ok := runTests(input_dir, nil)
 	if !ok {
 		fmt.Printf("runtime error test expected to return ok: %s", cmdres.String())
 	}
 
-	output := getStructure(cmdres, input_dir, version, false)
-	jsonBytes, err := json.MarshalIndent(output, "", "\t")
+	testOutput, err := parseTestOutput(cmdres)
+	if err != nil {
+		t.Fatalf("parsing test output: %s", err)
+	}
+
+	report := getStructureForTestsOk(testOutput, input_dir, version, false)
+
+	jsonBytes, err := json.MarshalIndent(report, "", "\t")
 	if err != nil {
 		t.Fatalf("runtime error output not valid json: %s", err)
 	}
@@ -56,13 +63,18 @@ func TestRunTests_RaceDetector(t *testing.T) {
 		fmt.Printf("race detector test expected to return ok: %s", cmdres.String())
 	}
 
-	output := getStructure(cmdres, input_dir, version, false)
-	if output.Status != "fail" {
-		t.Errorf("wrong status for race detector test: got %q, want %q", output.Status, "fail")
+	testOutput, err := parseTestOutput(cmdres)
+	if err != nil {
+		t.Errorf("parsing test output: %s", err)
 	}
 
-	if !strings.Contains(output.Tests[0].Message, "WARNING: DATA RACE") {
-		t.Errorf("no data race error included in message: %s", output.Tests[0].Message)
+	report := getStructureForTestsOk(testOutput, input_dir, version, false)
+	if report.Status != "fail" {
+		t.Errorf("wrong status for race detector test: got %q, want %q", report.Status, "fail")
+	}
+
+	if !strings.Contains(report.Tests[0].Message, "WARNING: DATA RACE") {
+		t.Errorf("no data race error included in message: %s", report.Tests[0].Message)
 	}
 }
 

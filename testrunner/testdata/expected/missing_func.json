@@ -1,6 +1,6 @@
 {
 	"status": "error",
 	"version": 3,
-	"message": "# gigasecond [gigasecond.test]\n./missing_func_test.go: undefined: AddGigasecond\n./missing_func_test.go: undefined: AddGigasecond\nFAIL\tgigasecond [build failed]\n'PATH_PLACEHOLDER test --short --json .' returned exit code 1: exit status 1",
+	"message": "FAIL\tgigasecond [build failed]\n# gigasecond [gigasecond.test]\n./missing_func_test.go: undefined: AddGigasecond\n./missing_func_test.go: undefined: AddGigasecond\n'PATH_PLACEHOLDER test --short --json .' returned exit code 1: exit status 1",
 	"tests": null
 }
