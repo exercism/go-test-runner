@@ -1,5 +1,7 @@
 module external_packages
 
+// This version should be the same as the default version of go
+// in the go.mod files given to the students
 go 1.18
 
 require (
