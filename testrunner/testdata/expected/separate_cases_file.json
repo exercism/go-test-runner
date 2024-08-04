@@ -1,0 +1,72 @@
+{
+	"status": "pass",
+	"version": 3,
+	"tests": [
+		{
+			"name": "TestParseCard Separate/ parse two",
+			"status": "pass",
+			"test_code": "func TestParseCard_Separate(t *testing.T) {\n\ttt := struct {\n\t\tname string\n\t\tcard string\n\t\twant int\n\t}{\n\t\tname: \"parse two\",\n\t\tcard: \"two\",\n\t\twant: 2,\n\t}\n\n\tif got := ParseCard(tt.card); got != tt.want {\n\t\tt.Errorf(\"ParseCard(%s) = %d, want %d\", tt.card, got, tt.want)\n\t}\n\n}",
+			"message": "\n=== RUN   TestParseCard_Separate/parse_two\n\n--- PASS: TestParseCard_Separate/parse_two \n"
+		},
+		{
+			"name": "TestParseCard Separate/ parse jack",
+			"status": "pass",
+			"test_code": "func TestParseCard_Separate(t *testing.T) {\n\ttt := struct {\n\t\tname string\n\t\tcard string\n\t\twant int\n\t}{\n\t\tname: \"parse jack\",\n\t\tcard: \"jack\",\n\t\twant: 10,\n\t}\n\n\tif got := ParseCard(tt.card); got != tt.want {\n\t\tt.Errorf(\"ParseCard(%s) = %d, want %d\", tt.card, got, tt.want)\n\t}\n\n}",
+			"message": "\n=== RUN   TestParseCard_Separate/parse_jack\n\n--- PASS: TestParseCard_Separate/parse_jack \n"
+		},
+		{
+			"name": "TestParseCard Separate/ parse king",
+			"status": "pass",
+			"test_code": "func TestParseCard_Separate(t *testing.T) {\n\ttt := struct {\n\t\tname string\n\t\tcard string\n\t\twant int\n\t}{\n\t\tname: \"parse king\",\n\t\tcard: \"king\",\n\t\twant: 10,\n\t}\n\n\tif got := ParseCard(tt.card); got != tt.want {\n\t\tt.Errorf(\"ParseCard(%s) = %d, want %d\", tt.card, got, tt.want)\n\t}\n\n}",
+			"message": "\n=== RUN   TestParseCard_Separate/parse_king\n\n--- PASS: TestParseCard_Separate/parse_king \n"
+		},
+		{
+			"name": "TestBlackjack Separate/ blackjack with ten (ace first)",
+			"status": "pass",
+			"test_code": "func TestBlackjack_Separate(t *testing.T) {\n\ttt := struct {\n\t\tname string\n\t\thand hand\n\t\twant bool\n\t}{\n\t\tname: \"blackjack with ten (ace first)\",\n\t\thand: hand{card1: \"ace\", card2: \"ten\"},\n\t\twant: true,\n\t}\n\tsomeAssignment := \"test\"\n\tfmt.Println(someAssignment)\n\n\t_ = \"literally anything\"\n\n\tgot := IsBlackjack(tt.hand.card1, tt.hand.card2)\n\tif got != tt.want {\n\t\tt.Errorf(\"IsBlackjack(%s, %s) = %t, want %t\", tt.hand.card1, tt.hand.card2, got, tt.want)\n\t}\n\n\t// Additional statements should be included\n\tfmt.Println(\"the whole block\")\n\tfmt.Println(\"should be returned\")\n}",
+			"message": "\n=== RUN   TestBlackjack_Separate/blackjack_with_ten_(ace_first)\n\n--- PASS: TestBlackjack_Separate/blackjack_with_ten_(ace_first) \n"
+		},
+		{
+			"name": "TestBlackjack Separate/ blackjack with jack (ace first)",
+			"status": "pass",
+			"test_code": "func TestBlackjack_Separate(t *testing.T) {\n\ttt := struct {\n\t\tname string\n\t\thand hand\n\t\twant bool\n\t}{\n\t\tname: \"blackjack with jack (ace first)\",\n\t\thand: hand{card1: \"ace\", card2: \"jack\"},\n\t\twant: true,\n\t}\n\tsomeAssignment := \"test\"\n\tfmt.Println(someAssignment)\n\n\t_ = \"literally anything\"\n\n\tgot := IsBlackjack(tt.hand.card1, tt.hand.card2)\n\tif got != tt.want {\n\t\tt.Errorf(\"IsBlackjack(%s, %s) = %t, want %t\", tt.hand.card1, tt.hand.card2, got, tt.want)\n\t}\n\n\t// Additional statements should be included\n\tfmt.Println(\"the whole block\")\n\tfmt.Println(\"should be returned\")\n}",
+			"message": "\n=== RUN   TestBlackjack_Separate/blackjack_with_jack_(ace_first)\n\n--- PASS: TestBlackjack_Separate/blackjack_with_jack_(ace_first) \n"
+		},
+		{
+			"name": "TestBlackjack Separate/ blackjack with queen (ace first)",
+			"status": "pass",
+			"test_code": "func TestBlackjack_Separate(t *testing.T) {\n\ttt := struct {\n\t\tname string\n\t\thand hand\n\t\twant bool\n\t}{\n\t\tname: \"blackjack with queen (ace first)\",\n\t\thand: hand{\n\t\t\tcard1: \"ace\", card2: \"queen\",\n\t\t},\n\t\twant: true,\n\t}\n\tsomeAssignment := \"test\"\n\tfmt.Println(someAssignment)\n\n\t_ = \"literally anything\"\n\n\tgot := IsBlackjack(tt.hand.card1, tt.hand.card2)\n\tif got != tt.want {\n\t\tt.Errorf(\"IsBlackjack(%s, %s) = %t, want %t\", tt.hand.card1, tt.hand.card2, got, tt.want)\n\t}\n\n\t// Additional statements should be included\n\tfmt.Println(\"the whole block\")\n\tfmt.Println(\"should be returned\")\n}",
+			"message": "\n=== RUN   TestBlackjack_Separate/blackjack_with_queen_(ace_first)\n\n--- PASS: TestBlackjack_Separate/blackjack_with_queen_(ace_first) \n"
+		},
+		{
+			"name": "TestBlackjack Separate/ blackjack with king (ace first)",
+			"status": "pass",
+			"test_code": "func TestBlackjack_Separate(t *testing.T) {\n\ttt := struct {\n\t\tname string\n\t\thand hand\n\t\twant bool\n\t}{\n\t\tname: \"blackjack with king (ace first)\",\n\t\thand: hand{card1: \"ace\", card2: \"king\"},\n\t\twant: true,\n\t}\n\tsomeAssignment := \"test\"\n\tfmt.Println(someAssignment)\n\n\t_ = \"literally anything\"\n\n\tgot := IsBlackjack(tt.hand.card1, tt.hand.card2)\n\tif got != tt.want {\n\t\tt.Errorf(\"IsBlackjack(%s, %s) = %t, want %t\", tt.hand.card1, tt.hand.card2, got, tt.want)\n\t}\n\n\t// Additional statements should be included\n\tfmt.Println(\"the whole block\")\n\tfmt.Println(\"should be returned\")\n}",
+			"message": "\n=== RUN   TestBlackjack_Separate/blackjack_with_king_(ace_first)\n\n--- PASS: TestBlackjack_Separate/blackjack_with_king_(ace_first) \n"
+		},
+		{
+			"name": "TestBlackjack Separate/ no blackjack with eight and five",
+			"status": "pass",
+			"test_code": "func TestBlackjack_Separate(t *testing.T) {\n\ttt := struct {\n\t\tname string\n\t\thand hand\n\t\twant bool\n\t}{\n\t\tname: \"no blackjack with eight and five\",\n\t\thand: hand{card2: \"eight\", card1: \"five\"},\n\t\twant: false,\n\t}\n\tsomeAssignment := \"test\"\n\tfmt.Println(someAssignment)\n\n\t_ = \"literally anything\"\n\n\tgot := IsBlackjack(tt.hand.card1, tt.hand.card2)\n\tif got != tt.want {\n\t\tt.Errorf(\"IsBlackjack(%s, %s) = %t, want %t\", tt.hand.card1, tt.hand.card2, got, tt.want)\n\t}\n\n\t// Additional statements should be included\n\tfmt.Println(\"the whole block\")\n\tfmt.Println(\"should be returned\")\n}",
+			"message": "\n=== RUN   TestBlackjack_Separate/no_blackjack_with_eight_and_five\n\n--- PASS: TestBlackjack_Separate/no_blackjack_with_eight_and_five \n"
+		},
+		{
+			"name": "TestSubtest MultiAssignStmt/ parse two",
+			"status": "pass",
+			"test_code": "func TestSubtest_MultiAssignStmt(t *testing.T) {\n\tsomeAssignment := \"test\"\n\tfmt.Println(someAssignment)\n\n\ttt := struct {\n\t\tname string\n\t\tcard string\n\t\twant int\n\t}{\n\t\tname: \"parse two\",\n\t\tcard: \"two\",\n\t\twant: 2,\n\t}\n\n\tsomeAssignment2 := \"test2\"\n\tfmt.Println(someAssignment2)\n\n\tif got := ParseCard(tt.card); got != tt.want {\n\t\tt.Errorf(\"ParseCard(%s) = %d, want %d\", tt.card, got, tt.want)\n\t}\n\n\t// Additional statements should be included\n\tfmt.Println(\"the whole block\")\n\tfmt.Println(\"should be returned\")\n}",
+			"message": "\n=== RUN   TestSubtest_MultiAssignStmt/parse_two\n\n--- PASS: TestSubtest_MultiAssignStmt/parse_two \n"
+		},
+		{
+			"name": "TestSubtest MultiAssignStmt/ parse jack",
+			"status": "pass",
+			"test_code": "func TestSubtest_MultiAssignStmt(t *testing.T) {\n\tsomeAssignment := \"test\"\n\tfmt.Println(someAssignment)\n\n\ttt := struct {\n\t\tname string\n\t\tcard string\n\t\twant int\n\t}{\n\t\tname: \"parse jack\",\n\t\tcard: \"jack\",\n\t\twant: 10,\n\t}\n\n\tsomeAssignment2 := \"test2\"\n\tfmt.Println(someAssignment2)\n\n\tif got := ParseCard(tt.card); got != tt.want {\n\t\tt.Errorf(\"ParseCard(%s) = %d, want %d\", tt.card, got, tt.want)\n\t}\n\n\t// Additional statements should be included\n\tfmt.Println(\"the whole block\")\n\tfmt.Println(\"should be returned\")\n}",
+			"message": "\n=== RUN   TestSubtest_MultiAssignStmt/parse_jack\n\n--- PASS: TestSubtest_MultiAssignStmt/parse_jack \n"
+		},
+		{
+			"name": "TestSubtest MultiAssignStmt/ parse king",
+			"status": "pass",
+			"test_code": "func TestSubtest_MultiAssignStmt(t *testing.T) {\n\tsomeAssignment := \"test\"\n\tfmt.Println(someAssignment)\n\n\ttt := struct {\n\t\tname string\n\t\tcard string\n\t\twant int\n\t}{\n\t\tname: \"parse king\",\n\t\tcard: \"king\",\n\t\twant: 10,\n\t}\n\n\tsomeAssignment2 := \"test2\"\n\tfmt.Println(someAssignment2)\n\n\tif got := ParseCard(tt.card); got != tt.want {\n\t\tt.Errorf(\"ParseCard(%s) = %d, want %d\", tt.card, got, tt.want)\n\t}\n\n\t// Additional statements should be included\n\tfmt.Println(\"the whole block\")\n\tfmt.Println(\"should be returned\")\n}",
+			"message": "\n=== RUN   TestSubtest_MultiAssignStmt/parse_king\n\n--- PASS: TestSubtest_MultiAssignStmt/parse_king \n"
+		}
+	]
+}
