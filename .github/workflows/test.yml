@@ -4,7 +4,7 @@ on: [push, pull_request, workflow_dispatch]
 
 jobs:
   lint:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     steps:
       - name: Install Go
         uses: actions/setup-go@4d34df0c2316fe8122ab82dc22947d607c0c91f9
@@ -20,7 +20,7 @@ jobs:
   test:
     strategy:
       matrix:
-        platform: [ubuntu-22.04, windows-2022]
+        platform: [ubuntu-24.04, windows-2022]
     runs-on: ${{ matrix.platform }}
     steps:
       - name: Install Go
@@ -34,7 +34,7 @@ jobs:
         run: go test ./... -v -covermode=count
 
   smoke-tests:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     steps:
       - name: Checkout code
         uses: actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9
@@ -58,7 +58,7 @@ jobs:
         run: bin/run-tests-in-docker.sh
 
   coverage:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     steps:
       - name: Install Go
         if: success()
