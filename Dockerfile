@@ -1,4 +1,4 @@
-FROM golang:1.22.5-alpine3.20
+FROM golang:1.25.1-alpine3.22
 
 # Add addtional packages needed for the race detector to work
 RUN apk add --update build-base make
@@ -12,6 +12,10 @@ COPY --chown=appuser:appuser . /opt/test-runner
 
 # Build and run the testrunner with appuser
 USER appuser
+
+# Default is 'go telemetry local' which saves telemetry locally.
+# Since data will never be uploaded, turn it off to avoid unnecessary file writes.
+RUN go telemetry off
 
 # This populates the build cache with the standard library
 # and command packages so future compilations are faster
