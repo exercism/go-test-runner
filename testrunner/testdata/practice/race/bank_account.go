@@ -1,9 +1,6 @@
 package account
 
-import "sync"
-
 type Account struct {
-	mu      *sync.RWMutex
 	open    bool
 	balance int64
 }
@@ -15,19 +12,17 @@ func Open(amt int64) *Account {
 	return &Account{
 		open:    true,
 		balance: amt,
-		mu:      new(sync.RWMutex),
 	}
 }
 
 func (a *Account) Balance() (bal int64, ok bool) {
-	// Locking missing here.
+	// Locking missing here - should trigger race detector
 	bal, ok = a.balance, a.open
 	return
 }
 
 func (a *Account) Deposit(amt int64) (newBal int64, ok bool) {
-	a.mu.Lock()
-	defer a.mu.Unlock()
+	// Locking missing here - should trigger race detector
 	if !a.open {
 		return a.balance, false
 	}
@@ -39,8 +34,7 @@ func (a *Account) Deposit(amt int64) (newBal int64, ok bool) {
 }
 
 func (a *Account) Close() (pay int64, ok bool) {
-	a.mu.Lock()
-	defer a.mu.Unlock()
+	// Locking missing here - should trigger race detector
 	if !a.open {
 		return 0, false
 	}

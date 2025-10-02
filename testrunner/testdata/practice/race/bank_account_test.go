@@ -12,9 +12,13 @@ func TestConcDeposit(t *testing.T) {
 	if runtime.NumCPU() < 2 {
 		t.Skip("Multiple CPU cores required for concurrency tests.")
 	}
-	if runtime.GOMAXPROCS(0) < 2 {
+	previousMaxProcs := runtime.GOMAXPROCS(0)
+
+	if previousMaxProcs < 2 {
 		runtime.GOMAXPROCS(2)
+		defer runtime.GOMAXPROCS(previousMaxProcs)
 	}
+
 	a := Open(0)
 	if a == nil {
 		t.Fatal("Open(0) = nil, want non-nil *Account.")
