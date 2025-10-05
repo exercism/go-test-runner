@@ -31,7 +31,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
       - name: Run tests
-        run: go test ./... -v -covermode=count
+        run: go test ./... -v
 
   smoke-tests:
     runs-on: ubuntu-24.04
@@ -56,24 +56,3 @@ jobs:
 
       - name: Run Tests in Docker
         run: bin/run-tests-in-docker.sh
-
-  coverage:
-    runs-on: ubuntu-22.04
-    steps:
-      - name: Install Go
-        if: success()
-        uses: actions/setup-go@4d34df0c2316fe8122ab82dc22947d607c0c91f9
-        with:
-          go-version: 1.22.x
-      - name: Checkout code
-        uses: actions/checkout@2541b1294d2704b0964813337f33b291d3f8596b
-      - name: Calc coverage
-        run: |
-          go test ./... -v -covermode=count -coverprofile=coverage.out
-      - name: Convert coverage.out to coverage.lcov
-        uses: jandelgado/gcov2lcov-action@c680c0f7c7442485f1749eb2a13e54a686e76eb5
-      - name: Coveralls
-        uses: coverallsapp/github-action@9ba913c152ae4be1327bfb9085dc806cedb44057
-        with:
-          github-token: ${{ secrets.github_token }}
-          path-to-lcov: coverage.lcov
