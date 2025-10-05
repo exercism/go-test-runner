@@ -4,48 +4,48 @@ on: [push, pull_request, workflow_dispatch]
 
 jobs:
   lint:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     steps:
       - name: Install Go
-        uses: actions/setup-go@4d34df0c2316fe8122ab82dc22947d607c0c91f9
+        uses: actions/setup-go@44694675825211faa026b3c33043df3e48a5fa00
         with:
           go-version: 1.22.x
       - name: Checkout code
         uses: actions/checkout@2541b1294d2704b0964813337f33b291d3f8596b
       - name: Run linters
-        uses: golangci/golangci-lint-action@a4f60bb28d35aeee14e6880718e0c85ff1882e64
+        uses: golangci/golangci-lint-action@4afd733a84b1f43292c63897423277bb7f4313a9
         with:
-          version: v1.59.1
+          version: v2.5.0
 
   test:
     strategy:
       matrix:
-        platform: [ubuntu-22.04, windows-2022]
+        platform: [ubuntu-24.04, windows-2025]
     runs-on: ${{ matrix.platform }}
     steps:
       - name: Install Go
         if: success()
-        uses: actions/setup-go@4d34df0c2316fe8122ab82dc22947d607c0c91f9
+        uses: actions/setup-go@44694675825211faa026b3c33043df3e48a5fa00
         with:
           go-version: 1.22.x
       - name: Checkout code
-        uses: actions/checkout@2541b1294d2704b0964813337f33b291d3f8596b
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
       - name: Run tests
-        run: go test ./... -v -covermode=count
+        run: go test ./... -v
 
   smoke-tests:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     steps:
       - name: Checkout code
-        uses: actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
 
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@4c0219f9ac95b02789c1075625400b2acbff50b1
+        uses: docker/setup-buildx-action@e468171a9de216ec08956ac3ada2f0791b6bd435
         with:
           install: true
 
       - name: Build Docker image and store in cache
-        uses: docker/build-push-action@2eb1c1961a95fc15694676618e422e8ba1d63825
+        uses: docker/build-push-action@263435318d21b8e681c14492fe198d362a7d2c83
         with:
           context: .
           push: false
@@ -56,24 +56,3 @@ jobs:
 
       - name: Run Tests in Docker
         run: bin/run-tests-in-docker.sh
-
-  coverage:
-    runs-on: ubuntu-22.04
-    steps:
-      - name: Install Go
-        if: success()
-        uses: actions/setup-go@4d34df0c2316fe8122ab82dc22947d607c0c91f9
-        with:
-          go-version: 1.22.x
-      - name: Checkout code
-        uses: actions/checkout@2541b1294d2704b0964813337f33b291d3f8596b
-      - name: Calc coverage
-        run: |
-          go test ./... -v -covermode=count -coverprofile=coverage.out
-      - name: Convert coverage.out to coverage.lcov
-        uses: jandelgado/gcov2lcov-action@c680c0f7c7442485f1749eb2a13e54a686e76eb5
-      - name: Coveralls
-        uses: coverallsapp/github-action@9ba913c152ae4be1327bfb9085dc806cedb44057
-        with:
-          github-token: ${{ secrets.github_token }}
-          path-to-lcov: coverage.lcov
