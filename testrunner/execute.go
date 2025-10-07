@@ -4,7 +4,6 @@ import (
 	"bufio"
 	"bytes"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"log"
 	"os"
@@ -54,15 +53,16 @@ func Execute(input_dir string) []byte {
 	ver := 3
 
 	exerciseConfig := parseExerciseConfig(input_dir)
+	cmdres, testsOk := runTests(input_dir, exerciseConfig.TestingFlags)
+	testOutput, err := parseTestOutput(cmdres)
+	if err != nil {
+		log.Fatalf("parsing test output: %s", err)
+	}
 
-	if cmdres, ok := runTests(input_dir, exerciseConfig.TestingFlags); ok {
-		report = getStructure(cmdres, input_dir, ver, exerciseConfig.TaskIDsEnabled)
+	if testsOk {
+		report = getStructureForTestsOk(testOutput, input_dir, ver, exerciseConfig.TaskIDsEnabled)
 	} else {
-		report = &testReport{
-			Status:  statErr,
-			Version: ver,
-			Message: cmdres.String(),
-		}
+		report = getStructureForTestsNotOk(testOutput, ver)
 	}
 
 	bts, err := json.MarshalIndent(report, "", "\t")
@@ -72,7 +72,31 @@ func Execute(input_dir string) []byte {
 	return bts
 }
 
-func getStructure(lines bytes.Buffer, input_dir string, ver int, taskIDsEnabled bool) *testReport {
+func getStructureForTestsNotOk(parsedOutput *parsedTestOutput, ver int) *testReport {
+	report := &testReport{
+		Status:  statErr,
+		Version: ver,
+		Message: parsedOutput.joinPackageMessages("\n"),
+	}
+
+	report.Message += parsedOutput.joinFailMessages("\n")
+
+	jsonOutputMessages := make([]string, 0)
+
+	for _, line := range parsedOutput.testLines {
+		if line.Action == "output" {
+			jsonOutputMessages = append(jsonOutputMessages, line.Output)
+		}
+	}
+
+	if len(jsonOutputMessages) > 0 {
+		report.Message += "\n" + strings.Join(jsonOutputMessages, "\n")
+	}
+
+	return report
+}
+
+func getStructureForTestsOk(parsedOutput *parsedTestOutput, input_dir string, ver int, taskIDsEnabled bool) *testReport {
 	report := &testReport{
 		Status:  statPass,
 		Version: ver,
@@ -84,10 +108,17 @@ func getStructure(lines bytes.Buffer, input_dir string, ver int, taskIDsEnabled 
 		}
 	}()
 
-	tests, err := processTestResults(lines, input_dir, taskIDsEnabled)
-	if err != nil {
+	tests := processTestResults(parsedOutput, input_dir, taskIDsEnabled)
+
+	if parsedOutput.hasFailMessages() {
 		report.Status = statErr
-		report.Message = err.Error()
+		report.Message = parsedOutput.joinFailMessages("\n")
+		return report
+	}
+
+	if len(tests) == 0 && parsedOutput.hasPackageMessages() {
+		report.Status = statErr
+		report.Message = parsedOutput.joinPackageMessages("")
 		return report
 	}
 
@@ -117,49 +148,88 @@ func getStructure(lines bytes.Buffer, input_dir string, ver int, taskIDsEnabled 
 	return report
 }
 
-func processTestResults(lines bytes.Buffer, input_dir string, taskIDsEnabled bool) ([]testResult, error) {
-	var (
-		results         = []testResult{}
-		resultIdxByName = make(map[string]int)
-		failMsg         [][]byte
-		pkgLevelMsg     string
-	)
+type parsedTestOutput struct {
+	testLines        []testLine
+	pkgLevelMessages []string
+	failMessages     []string
+}
 
-	testFile := FindTestFile(input_dir)
-	rootLevelTests := FindAllRootLevelTests(testFile)
-	rootLevelTestsMap := ConvertToMapByTestName(rootLevelTests)
+func (out *parsedTestOutput) hasFailMessages() bool {
+	return len(out.failMessages) > 0
+}
+
+func (out *parsedTestOutput) joinFailMessages(sep string) string {
+	return strings.Join(out.failMessages, sep)
+}
+
+func (out *parsedTestOutput) hasPackageMessages() bool {
+	return len(out.pkgLevelMessages) > 0
+}
+
+func (out *parsedTestOutput) joinPackageMessages(sep string) string {
+	return strings.Join(out.pkgLevelMessages, sep)
+}
+
+func parseTestOutput(lines bytes.Buffer) (*parsedTestOutput, error) {
+	parsedOutput := &parsedTestOutput{
+		testLines:        make([]testLine, 0),
+		pkgLevelMessages: make([]string, 0),
+		failMessages:     make([]string, 0),
+	}
 
 	scanner := bufio.NewScanner(&lines)
 	for scanner.Scan() {
 		lineBytes := scanner.Bytes()
 		var line testLine
 
-		switch {
-		case len(lineBytes) == 0:
+		if len(lineBytes) == 0 {
 			continue
-		case !bytes.HasPrefix(lineBytes, []byte{'{'}):
+		}
+
+		if !bytes.HasPrefix(lineBytes, []byte{'{'}) {
 			// if the line is not a json, we need to collect the lines to gather why `go test --json` failed
-			failMsg = append(failMsg, lineBytes)
+			parsedOutput.failMessages = append(parsedOutput.failMessages, string(lineBytes))
 			continue
 		}
 
 		if err := json.Unmarshal(lineBytes, &line); err != nil {
-			log.Println(err)
-			continue
+			return nil, fmt.Errorf("parsing line starting with '{' as json: %w", err)
 		}
 
 		if line.Test == "" {
 			// We collect messages that do not belong to an individual test and use them later
 			// as error message in case there was no test level message found at all.
-			pkgLevelMsg += line.Output
+			if line.Output != "" {
+				parsedOutput.pkgLevelMessages = append(parsedOutput.pkgLevelMessages, line.Output)
+			}
 			continue
 		}
 
-		switch line.Action {
+		parsedOutput.testLines = append(parsedOutput.testLines, line)
+	}
+
+	return parsedOutput, nil
+}
+
+func processTestResults(
+	parsedOutput *parsedTestOutput,
+	input_dir string,
+	taskIDsEnabled bool,
+) []testResult {
+
+	results := make([]testResult, 0)
+	resultIdxByName := make(map[string]int)
+
+	testFile := FindTestFile(input_dir)
+	rootLevelTests := FindAllRootLevelTests(testFile)
+	rootLevelTestsMap := ConvertToMapByTestName(rootLevelTests)
+
+	for _, parsedLine := range parsedOutput.testLines {
+		switch parsedLine.Action {
 		case "run":
-			tc, taskID := ExtractTestCodeAndTaskID(rootLevelTestsMap, line.Test)
+			tc, taskID := ExtractTestCodeAndTaskID(rootLevelTestsMap, parsedLine.Test)
 			result := testResult{
-				Name: line.Test,
+				Name: parsedLine.Test,
 				// Use error as default state in case no other state is found later.
 				// No state is provided e.g. when there is a stack overflow.
 				Status: statErr,
@@ -172,43 +242,34 @@ func processTestResults(lines bytes.Buffer, input_dir string, taskIDsEnabled boo
 			results = append(results, result)
 			resultIdxByName[result.Name] = len(results) - 1
 		case "output":
-			if idx, found := resultIdxByName[line.Test]; found {
-				results[idx].Message += "\n" + line.Output
+			if idx, found := resultIdxByName[parsedLine.Test]; found {
+				results[idx].Message += "\n" + parsedLine.Output
 			} else {
-				log.Printf("cannot extend message for unknown test: %s\n", line.Test)
+				log.Printf("cannot extend message for unknown test: %s\n", parsedLine.Test)
 				continue
 			}
 		case statFail:
-			if idx, found := resultIdxByName[line.Test]; found {
+			if idx, found := resultIdxByName[parsedLine.Test]; found {
 				results[idx].Status = statFail
 			} else {
-				log.Printf("cannot set failed status for unknown test: %s\n", line.Test)
+				log.Printf("cannot set failed status for unknown test: %s\n", parsedLine.Test)
 				continue
 			}
 		case statPass:
-			if idx, found := resultIdxByName[line.Test]; found {
+			if idx, found := resultIdxByName[parsedLine.Test]; found {
 				results[idx].Status = statPass
 			} else {
-				log.Printf("cannot set passing status for unknown test: %s\n", line.Test)
+				log.Printf("cannot set passing status for unknown test: %s\n", parsedLine.Test)
 				continue
 			}
 		case statSkip:
-			if idx, found := resultIdxByName[line.Test]; found {
+			if idx, found := resultIdxByName[parsedLine.Test]; found {
 				results[idx].Status = statSkip
 			} else {
-				log.Printf("cannot set skipped status for unknown test: %s\n", line.Test)
+				log.Printf("cannot set skipped status for unknown test: %s\n", parsedLine.Test)
 				continue
 			}
 		}
-
-	}
-
-	if len(failMsg) != 0 {
-		return nil, errors.New(string(bytes.Join(failMsg, []byte{'\n'})))
-	}
-
-	if len(results) == 0 && pkgLevelMsg != "" {
-		return nil, errors.New(pkgLevelMsg)
 	}
 
 	if taskIDsEnabled {
@@ -217,7 +278,7 @@ func processTestResults(lines bytes.Buffer, input_dir string, taskIDsEnabled boo
 		results = addNonExecutedTests(rootLevelTests, results)
 	}
 
-	return results, nil
+	return results
 }
 
 // addNonExecutedTests adds tests to the result set that were not executed.

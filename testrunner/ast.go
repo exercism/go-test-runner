@@ -56,7 +56,12 @@ func FindAllRootLevelTests(fileName string) []rootLevelTest {
 			taskID := findTaskID(f.Doc)
 			fun := &printer.CommentedNode{Node: f, Comments: file.Comments}
 			var buf bytes.Buffer
-			printer.Fprint(&buf, fset, fun)
+			printErr := printer.Fprint(&buf, fset, fun)
+			if printErr != nil {
+				log.Printf("warning: failed to print AST for test %s in %s: %s",
+					f.Name.Name, fileName, err,
+				)
+			}
 
 			tests = append(tests, rootLevelTest{
 				name:     f.Name.Name,
@@ -253,7 +258,7 @@ func processTestDataAssgn(sub string, assgn *ast.AssignStmt) (*subTData, bool) {
 			}
 			// spaces are replaced with underscores in subtest names
 			// caveat: a subtest name mixing spaces and underscores cannot be found!
-			altsub := strconv.Quote(strings.Replace(sub, "_", " ", -1))
+			altsub := strconv.Quote(strings.ReplaceAll(sub, "_", " "))
 			// still check the original subtest name, in case it had underscores
 			if strconv.Quote(sub) == value.Value || altsub == value.Value {
 				metadata.subTKey = key // subtest data "name"
@@ -268,6 +273,7 @@ func processTestDataAssgn(sub string, assgn *ast.AssignStmt) (*subTData, bool) {
 	log.Printf("warning: could not find test data struct for subtest: %s", sub)
 	return nil, false
 }
+
 // getAllFieldNames returns all the field names of anonymous struct type
 // not support for named struct type yet
 func getAllFieldNames(exp ast.Expr) []string {
@@ -303,7 +309,7 @@ func processRange(metadata *subTData, rastmt *ast.RangeStmt) bool {
 	// Parse the function literal from the Run() call within the range statement
 	runcall := rblexp.(*ast.CallExpr).Fun
 
-	if "Run" != runcall.(*ast.SelectorExpr).Sel.Name {
+	if runcall.(*ast.SelectorExpr).Sel.Name != "Run" {
 		log.Printf("warning: Run() call must follow range loop: (%s)",
 			runcall.(*ast.SelectorExpr).Sel.Name,
 		)

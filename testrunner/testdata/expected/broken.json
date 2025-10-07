@@ -1,6 +1,6 @@
 {
 	"status": "error",
 	"version": 3,
-	"message": "# gigasecond [gigasecond.test]\n./broken.go: undefined: unknownVar\n./broken.go: undefined: UnknownFunction\nFAIL\tgigasecond [build failed]\n'PATH_PLACEHOLDER test --short --json .' returned exit code 1: exit status 1",
+	"message": "# gigasecond [gigasecond.test]\n\n./broken.go: undefined: unknownVar\n\n./broken.go: undefined: UnknownFunction\n\nFAIL\tgigasecond [build failed]\n'PATH_PLACEHOLDER test --short --json .' returned exit code 1: exit status 1",
 	"tests": null
 }
