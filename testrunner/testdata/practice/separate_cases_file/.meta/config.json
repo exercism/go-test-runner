@@ -1,0 +1,23 @@
+{
+  "blurb": "...",
+  "authors": [
+    "..."
+  ],
+  "contributors": [
+    "..."
+  ],
+  "files": {
+    "solution": [
+      "conditionals.go"
+    ],
+    "test": [
+      "conditionals_test.go"
+    ],
+    "example": [
+      ".meta/example.go"
+    ]
+  },
+  "custom": {
+    "taskIdsEnabled": false
+  }
+}

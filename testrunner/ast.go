@@ -3,12 +3,16 @@ package testrunner
 import (
 	"bytes"
 	"errors"
+	"fmt"
 	"go/ast"
 	"go/format"
+	"go/importer"
 	"go/parser"
 	"go/printer"
 	"go/token"
+	"go/types"
 	"log"
+	"path/filepath"
 	"regexp"
 	"strconv"
 	"strings"
@@ -34,6 +38,7 @@ type rootLevelTest struct {
 	fileName string
 	code     string
 	taskID   uint64
+	pkgName  string
 }
 
 // FindAllRootLevelTests parses the test file and extracts the name,
@@ -65,6 +70,7 @@ func FindAllRootLevelTests(fileName string) []rootLevelTest {
 				fileName: fileName,
 				code:     buf.String(),
 				taskID:   taskID,
+				pkgName:  file.Name.Name,
 			})
 		}
 	}
@@ -100,15 +106,18 @@ func findTaskID(doc *ast.CommentGroup) uint64 {
 }
 
 // generate simplified test code corresponding to a subtest
-func getSubCode(test string, sub string, code string, file string) string {
+func getSubCode(test string, sub string, code string, file string, pkgName string) string {
+	pkgLine := fmt.Sprintf("package %s\n", pkgName)
 	fset := token.NewFileSet()
 	f, err := parser.ParseFile(
-		fset, file, "package main\n"+code, parser.ParseComments,
+		fset, file, pkgLine+code, parser.ParseComments,
 	)
 	if err != nil {
 		log.Printf("warning: '%s' not parsed from '%s': %s", test, file, err)
 		return ""
 	}
+
+	typeInfo := resolveTestData(fset, f, file)
 
 	fAST, ok := f.Decls[0].(*ast.FuncDecl)
 	if !ok {
@@ -118,14 +127,14 @@ func getSubCode(test string, sub string, code string, file string) string {
 
 	fbAST := fAST.Body.List // f.Decls[0].Body.List
 
-	astInfo, err := findTestDataAndRange(fbAST)
+	astInfo, err := findTestDataAndRange(fbAST, fset, typeInfo)
 	if err != nil {
 		log.Printf("warning: could not find test table and/or range: %v\n", err)
 		return ""
 	}
 
 	// process the test data assignment
-	metadata, ok := processTestDataAssgn(sub, astInfo.testDataAst)
+	metadata, ok := processTestDataAssgn(sub, astInfo.testDataAst, typeInfo)
 	if !ok {
 		return ""
 	}
@@ -151,36 +160,33 @@ func getSubCode(test string, sub string, code string, file string) string {
 		log.Println("warning: failed to format extracted AST for subtest")
 		return ""
 	}
-	return strings.TrimSpace(strings.TrimPrefix(buf.String(), "package main"))
+	if astInfo.testDataAstIdx != -1 { // testDataAst is already in the test function
+		return strings.TrimSpace(strings.TrimPrefix(buf.String(), pkgLine))
+	}
+	return insertTestDataASTIntoFunc(fset, astInfo.testDataAst, fAST.Body, buf.Bytes(), pkgLine)
 }
 
-func findTestDataAndRange(stmtList []ast.Stmt) (subTestAstInfo, error) {
+func findTestDataAndRange(stmtList []ast.Stmt, fset *token.FileSet, info *types.Info) (subTestAstInfo, error) {
 	result := subTestAstInfo{}
-
+	posToIndex := make(map[token.Position]int)
 	for i := range stmtList {
-		assignCandidate, ok := stmtList[i].(*ast.AssignStmt)
-		if ok && result.testDataAst == nil {
-			result.testDataAst = assignCandidate
-			result.testDataAstIdx = i
-		} else if ok {
-			identifier, isIdentifier := assignCandidate.Lhs[0].(*ast.Ident)
-			if !isIdentifier {
-				continue
-			}
-			// Overwrite the assignment we already found in case there is an
-			// assignment to a "tests" variable.
-			if identifier.Name == "tests" {
+		posToIndex[fset.Position(stmtList[i].Pos())] = i
+		if rangeCandidate, ok := stmtList[i].(*ast.RangeStmt); ok {
+			assignCandidate := getTestDataAssignFromRange(rangeCandidate, info)
+			if assignCandidate != nil {
+				// check if assignCandidate is in the same function with rangeCandidate
+				if idx, ok := posToIndex[fset.Position(assignCandidate.Pos())]; ok &&
+					fset.File(assignCandidate.Pos()).Name() == fset.File(rangeCandidate.Pos()).Name() {
+					result.testDataAstIdx = idx
+				} else {
+					result.testDataAstIdx = -1
+				}
 				result.testDataAst = assignCandidate
-				result.testDataAstIdx = i
+				result.rangeAst = rangeCandidate
+				result.rangeAstIdx = i
+				return result, nil
 			}
-		}
-
-		rangeCandidate, ok := stmtList[i].(*ast.RangeStmt)
-		// If we found a range after we already found an assignment, we are good to go.
-		if ok && result.testDataAst != nil {
-			result.rangeAst = rangeCandidate
-			result.rangeAstIdx = i
-			return result, nil
+			return subTestAstInfo{}, errors.New("failed to find assignment in sub-test")
 		}
 	}
 
@@ -190,17 +196,66 @@ func findTestDataAndRange(stmtList []ast.Stmt) (subTestAstInfo, error) {
 
 	return subTestAstInfo{}, errors.New("failed to find range statement in sub-test")
 }
+func getTestDataAssignFromRange(rangeAst *ast.RangeStmt, info *types.Info) *ast.AssignStmt {
+	// Get the identifier being ranged over
+	ident, ok := rangeAst.X.(*ast.Ident)
+	if !ok {
+		return nil
+	}
+
+	// Look up the object this identifier refers to
+	obj := info.Uses[ident]
+	if obj == nil {
+		// If not in Uses, check Defs (in case it's defined in the same expression)
+		obj = info.Defs[ident]
+	}
+	if obj == nil {
+		return nil
+	}
+
+	// Find the declaration AST node by looking through Defs
+	for id, def := range info.Defs {
+		if def == obj {
+			// Found the defining identifier, now get its declaration
+			if id.Obj != nil && id.Obj.Decl != nil {
+				spec := id.Obj.Decl
+				if assignStmt, ok := spec.(*ast.AssignStmt); ok {
+					return assignStmt
+				}
+				if valueSpec, ok := spec.(*ast.ValueSpec); ok {
+					lhs := make([]ast.Expr, len(valueSpec.Names))
+					for i, name := range valueSpec.Names {
+						lhs[i] = name
+					}
+					return &ast.AssignStmt{
+						Lhs: lhs,
+						Tok: token.DEFINE,
+						Rhs: valueSpec.Values,
+					}
+				}
+			}
+		}
+	}
+	return nil
+}
 
 // validate the test data assignment and return the associated metadata
-func processTestDataAssgn(sub string, assgn *ast.AssignStmt) (*subTData, bool) {
+func processTestDataAssgn(sub string, assgn *ast.AssignStmt, info *types.Info) (*subTData, bool) {
 	lhs1, ok := assgn.Lhs[0].(*ast.Ident) // f.Decls[0].Body.List[0].Lhs[0]
 	if !ok {
 		log.Println("warning: test data assignment not found")
 		return nil, false
 	}
-	if ast.Var != lhs1.Obj.Kind {
-		log.Println("warning: test data assignment must be a var")
-		return nil, false
+	// Check if this is a variable using type information
+	obj := info.Defs[lhs1]
+	if obj == nil {
+		obj = info.Uses[lhs1]
+	}
+	if obj != nil {
+		if _, ok := obj.(*types.Var); !ok {
+			log.Println("warning: test data assignment must be a var")
+			return nil, false
+		}
 	}
 	metadata := subTData{origTDName: lhs1.Name}
 
@@ -314,4 +369,61 @@ func processRange(metadata *subTData, rastmt *ast.RangeStmt) bool {
 	body := runfunclit.(*ast.FuncLit).Body.List
 	metadata.subTest = body
 	return true
+}
+
+// resolveTestData resolves test data variable declared in cases_test.go (if exists)
+// and returns type information for identifier resolution
+func resolveTestData(fset *token.FileSet, f *ast.File, file string) *types.Info {
+	filedata := filepath.Join(filepath.Dir(file), "cases_test.go")
+	fdata, _ := parser.ParseFile(fset, filedata, nil, parser.ParseComments)
+
+	// Prepare files for type checking
+	files := []*ast.File{f}
+	if fdata != nil {
+		files = append(files, fdata)
+	}
+
+	// Configure type checker
+	conf := types.Config{
+		Importer: importer.Default(),
+		Error:    func(err error) {}, // Ignore type errors - we only need identifier resolution
+	}
+
+	// Type check the package
+	info := &types.Info{
+		Defs: make(map[*ast.Ident]types.Object),
+		Uses: make(map[*ast.Ident]types.Object),
+	}
+
+	// Type check - ignore errors since files may have missing imports
+	_, _ = conf.Check("", fset, files, info)
+
+	return info
+}
+
+// insertTestDataASTIntoFunc inserts testDataAst into the first line of fbAST function's body
+func insertTestDataASTIntoFunc(fset *token.FileSet, testDataAst *ast.AssignStmt, fbAST *ast.BlockStmt, fileText []byte, pkgLine string) string {
+	buf := bytes.Buffer{}
+
+	p := fset.Position(fbAST.Lbrace).Offset + 1
+
+	// write the beginning of fileText to func (...) {
+	buf.Write(fileText[:p+1])
+
+	// write test data assign stmt
+	if err := format.Node(&buf, fset, testDataAst); err != nil {
+		log.Println("warning: failed to format extracted AST for subtest")
+		return ""
+	}
+	// write the rest of fileText
+	buf.Write(fileText[p+1:])
+
+	// because assign stmt is extracted from different file, its indentation is different from fileText
+	// so need to reformat
+	src, err := format.Source((buf.Bytes()))
+	if err != nil {
+		log.Println("warning: failed to format extracted AST for subtest")
+		return ""
+	}
+	return strings.TrimSpace(strings.TrimPrefix(string(src), pkgLine))
 }
