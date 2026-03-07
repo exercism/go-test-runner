@@ -50,7 +50,7 @@ func FindAllRootLevelTests(fileName string) []rootLevelTest {
 	ppc := parser.ParseComments
 	file, err := parser.ParseFile(fset, fileName, nil, ppc)
 	if err != nil {
-		log.Printf("error: not able to parse '%s': %s", fileName, err)
+		log.Printf("error: not able to parse %q: %s", fileName, err)
 		return nil
 	}
 	for _, d := range file.Decls {
@@ -113,7 +113,7 @@ func getSubCode(test string, sub string, code string, file string, pkgName strin
 		fset, file, pkgLine+code, parser.ParseComments,
 	)
 	if err != nil {
-		log.Printf("warning: '%s' not parsed from '%s': %s", test, file, err)
+		log.Printf("warning: %q not parsed from %q: %s", test, file, err)
 		return ""
 	}
 

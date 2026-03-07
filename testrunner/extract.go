@@ -21,7 +21,7 @@ func splitTestName(testName string) (string, string) {
 func FindTestFile(codePath string) string {
 	files, err := os.ReadDir(codePath)
 	if err != nil {
-		log.Printf("warning: input_dir '%s' cannot be read: %s", codePath, err)
+		log.Printf("warning: input_dir %q cannot be read: %s", codePath, err)
 		return ""
 	}
 
@@ -30,7 +30,7 @@ func FindTestFile(codePath string) string {
 			testpath := filepath.Join(codePath, f.Name())
 			fh, err := os.ReadFile(testpath)
 			if err != nil {
-				log.Printf("warning: test file '%s' read failed: %s", testpath, err)
+				log.Printf("warning: test file %q read failed: %s", testpath, err)
 			}
 
 			// We need to check we found the file that actually contains the tests and not only the
@@ -41,7 +41,7 @@ func FindTestFile(codePath string) string {
 			}
 		}
 	}
-	log.Printf("error: test file not found in input_dir '%s'", codePath)
+	log.Printf("error: test file not found in input_dir %q", codePath)
 	return ""
 }
 

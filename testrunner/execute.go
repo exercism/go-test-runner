@@ -511,7 +511,7 @@ func runTests(input_dir string, additionalTestFlags []string) (bytes.Buffer, boo
 
 	exitError, ok := err.(*exec.ExitError)
 	if !ok {
-		log.Fatalf("error: '%s' failed with non exit error %s",
+		log.Fatalf("error: %q failed with non exit error %s",
 			testCmd.String(), err,
 		)
 	}
@@ -522,7 +522,7 @@ func runTests(input_dir string, additionalTestFlags []string) (bytes.Buffer, boo
 		// Combine stderr and stdout in the same order in which they
 		// show up in the console.
 		stderr.WriteString(stdout.String())
-		stderr.WriteString(fmt.Sprintf("'%s' returned exit code %d: %s",
+		stderr.WriteString(fmt.Sprintf("%q returned exit code %d: %s",
 			testCmd.String(), exc, err,
 		))
 		return stderr, false
@@ -533,7 +533,7 @@ func runTests(input_dir string, additionalTestFlags []string) (bytes.Buffer, boo
 		// `go test` returns 1 when tests fail, this is fine
 		return stdout, true
 	default:
-		log.Fatalf("error: '%s' failed with exit error %d: %s",
+		log.Fatalf("error: %q failed with exit error %d: %s",
 			testCmd.String(), exc, err,
 		)
 	}
