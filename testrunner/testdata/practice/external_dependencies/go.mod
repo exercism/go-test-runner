@@ -1,6 +1,6 @@
 module externaldeps
 
-go 1.18
+go 1.26
 
 require golang.org/x/text v0.3.7
 
