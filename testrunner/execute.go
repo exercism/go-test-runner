@@ -522,9 +522,7 @@ func runTests(input_dir string, additionalTestFlags []string) (bytes.Buffer, boo
 		// Combine stderr and stdout in the same order in which they
 		// show up in the console.
 		stderr.WriteString(stdout.String())
-		stderr.WriteString(fmt.Sprintf("'%s' returned exit code %d: %s",
-			testCmd.String(), exc, err,
-		))
+		fmt.Fprintf(&stderr, "'%s' returned exit code %d: %s", testCmd.String(), exc, err)
 		return stderr, false
 	}
 
