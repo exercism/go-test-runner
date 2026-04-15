@@ -12,6 +12,7 @@ import (
 	"go/token"
 	"go/types"
 	"log"
+	"os"
 	"path/filepath"
 	"regexp"
 	"strconv"
@@ -374,12 +375,24 @@ func processRange(metadata *subTData, rastmt *ast.RangeStmt) bool {
 // resolveTestData resolves test data variable declared in cases_test.go (if exists)
 // and returns type information for identifier resolution
 func resolveTestData(fset *token.FileSet, f *ast.File, file string) *types.Info {
-	filedata := filepath.Join(filepath.Dir(file), "cases_test.go")
-	fdata, _ := parser.ParseFile(fset, filedata, nil, parser.ParseComments)
+	filepaths := []string{file}
+	// Add cases_test.go if it exists.
+	dataFile := filepath.Join(filepath.Dir(file), "cases_test.go")
+	if _, err := os.Stat(dataFile); err == nil {
+		filepaths = append(filepaths, dataFile)
+	}
 
-	// Prepare files for type checking
 	files := []*ast.File{f}
-	if fdata != nil {
+	for _, file := range filepaths {
+		fdata, err := parser.ParseFile(fset, file, nil, parser.ParseComments)
+		if err != nil {
+			log.Printf("parser.ParseFile(%q) failed: %v", file, err)
+			return nil
+		}
+		if fdata == nil {
+			log.Printf("parser.ParseFile(%q) returned nil", file)
+			return nil
+		}
 		files = append(files, fdata)
 	}
 
