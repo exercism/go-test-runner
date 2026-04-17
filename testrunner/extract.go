@@ -11,11 +11,8 @@ import (
 // Split a test name into its constituent parts
 // https://blog.golang.org/subtests#:~:text=The%20full%20name%20of%20a,first%20argument%20to%20Run%20otherwise.
 func splitTestName(testName string) (string, string) {
-	t := strings.Split(testName, "/")
-	if len(t) == 1 {
-		return t[0], ""
-	}
-	return t[0], t[1]
+	before, after, _ := strings.Cut(testName, "/")
+	return before, after
 }
 
 func FindTestFile(codePath string) string {
