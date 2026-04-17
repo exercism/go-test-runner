@@ -10,7 +10,20 @@ run_tests () {
     if (( $# != 0 )); then
         exercises="$@"
     else
-        exercises=( "${track_repo}"/exercises/concept/*/ "${track_repo}"/exercises/practice/*/ )
+        readarray -t exercises < <(
+            jq -r --arg prefix "${track_repo}/exercises" '
+                .exercises |
+                (
+                    (.practice | map(.slug = "practice/\(.slug)")) +
+                    (.concept  | map(.slug = "concept/\(.slug)"))
+                ) |
+                map(
+                    select(.status | IN("deprecated", "wip") | not) |
+                    "\($prefix)/\(.slug)"
+                ) |
+                sort[]
+            ' "${track_repo}/config.json"
+        )
     fi
     for exercise in "${exercises[@]}"; do
         src="$(jq -r '.files|.example//.exemplar|.[0]' "$exercise/.meta/config.json")"
