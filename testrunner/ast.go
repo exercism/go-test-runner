@@ -12,7 +12,6 @@ import (
 	"go/token"
 	"go/types"
 	"log"
-	"os"
 	"path/filepath"
 	"regexp"
 	"strconv"
@@ -375,11 +374,10 @@ func processRange(metadata *subTData, rastmt *ast.RangeStmt) bool {
 // resolveTestData resolves test data variable declared in cases_test.go (if exists)
 // and returns type information for identifier resolution
 func resolveTestData(fset *token.FileSet, f *ast.File, file string) *types.Info {
-	filepaths := []string{file}
-	// Add cases_test.go if it exists.
-	dataFile := filepath.Join(filepath.Dir(file), "cases_test.go")
-	if _, err := os.Stat(dataFile); err == nil {
-		filepaths = append(filepaths, dataFile)
+	glob := filepath.Join(filepath.Dir(file), "*_test.go")
+	filepaths, err := filepath.Glob(glob)
+	if err != nil {
+		return nil
 	}
 
 	files := []*ast.File{f}
