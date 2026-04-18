@@ -43,35 +43,37 @@ type rootLevelTest struct {
 
 // FindAllRootLevelTests parses the test file and extracts the name,
 // test code and task id for each top level test (parent test) in the file.
-func FindAllRootLevelTests(fileName string) []rootLevelTest {
+func FindAllRootLevelTests(fileNames []string) []rootLevelTest {
 	defer handleASTPanic()
 	tests := []rootLevelTest{}
 	fset := token.NewFileSet()
 	ppc := parser.ParseComments
-	file, err := parser.ParseFile(fset, fileName, nil, ppc)
-	if err != nil {
-		log.Printf("error: not able to parse '%s': %s", fileName, err)
-		return nil
-	}
-	for _, d := range file.Decls {
-		if f, ok := d.(*ast.FuncDecl); ok && strings.HasPrefix(f.Name.Name, "Test") {
-			taskID := findTaskID(f.Doc)
-			fun := &printer.CommentedNode{Node: f, Comments: file.Comments}
-			var buf bytes.Buffer
-			printErr := printer.Fprint(&buf, fset, fun)
-			if printErr != nil {
-				log.Printf("warning: failed to print AST for test %s in %s: %s",
-					f.Name.Name, fileName, err,
-				)
-			}
+	for _, fileName := range fileNames {
+		file, err := parser.ParseFile(fset, fileName, nil, ppc)
+		if err != nil {
+			log.Printf("error: not able to parse '%s': %s", fileName, err)
+			return nil
+		}
+		for _, d := range file.Decls {
+			if f, ok := d.(*ast.FuncDecl); ok && strings.HasPrefix(f.Name.Name, "Test") {
+				taskID := findTaskID(f.Doc)
+				fun := &printer.CommentedNode{Node: f, Comments: file.Comments}
+				var buf bytes.Buffer
+				printErr := printer.Fprint(&buf, fset, fun)
+				if printErr != nil {
+					log.Printf("warning: failed to print AST for test %s in %s: %s",
+						f.Name.Name, fileName, err,
+					)
+				}
 
-			tests = append(tests, rootLevelTest{
-				name:     f.Name.Name,
-				fileName: fileName,
-				code:     buf.String(),
-				taskID:   taskID,
-				pkgName:  file.Name.Name,
-			})
+				tests = append(tests, rootLevelTest{
+					name:     f.Name.Name,
+					fileName: fileName,
+					code:     buf.String(),
+					taskID:   taskID,
+					pkgName:  file.Name.Name,
+				})
+			}
 		}
 	}
 	return tests

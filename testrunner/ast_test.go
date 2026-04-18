@@ -27,7 +27,7 @@ func TestGetFuncCode(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			rootLevelTests := FindAllRootLevelTests(tt.testFile)
+			rootLevelTests := FindAllRootLevelTests([]string{tt.testFile})
 			rootLevelTestsMap := ConvertToMapByTestName(rootLevelTests)
 			if rootLevelTestsMap[tt.testName].code != tt.code {
 				t.Errorf("FindAllRootLevelTests for %s did not return correct code, got %v; want %v",
