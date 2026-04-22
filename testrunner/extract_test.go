@@ -2,6 +2,7 @@ package testrunner
 
 import (
 	"path/filepath"
+	"slices"
 	"strings"
 	"testing"
 )
@@ -40,22 +41,22 @@ func TestFindTestFile(t *testing.T) {
 	tests := []struct {
 		name     string
 		codePath string
-		fileName string
+		fileName []string
 	}{
 		{
 			name:     "found single test file",
 			codePath: filepath.Join("testdata", "practice", "passing"),
-			fileName: filepath.Join("testdata", "practice", "passing", "passing_test.go"),
+			fileName: []string{filepath.Join("testdata", "practice", "passing", "passing_test.go")},
 		},
 		{
 			name:     "found correct test file if there are two",
 			codePath: filepath.Join("testdata", "concept", "conditionals"),
-			fileName: filepath.Join("testdata", "concept", "conditionals", "conditionals_test.go"),
+			fileName: []string{filepath.Join("testdata", "concept", "conditionals", "conditionals_test.go")},
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if tf := FindTestFile(tt.codePath); tf != tt.fileName {
+			if tf := FindTestFiles(tt.codePath); !slices.Equal(tf, tt.fileName) {
 				t.Errorf("findTestFile(%v) = %v; want %v",
 					tt.codePath, tf, tt.fileName)
 			}
@@ -65,7 +66,7 @@ func TestFindTestFile(t *testing.T) {
 
 func TestExtractTestCode(t *testing.T) {
 	tf := filepath.Join("testdata", "concept", "conditionals", "conditionals_test.go")
-	rootLevelTests := FindAllRootLevelTests(tf)
+	rootLevelTests := FindAllRootLevelTests([]string{tf})
 	rootLevelTestsMap := ConvertToMapByTestName(rootLevelTests)
 	tests := []struct {
 		name     string

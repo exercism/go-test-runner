@@ -15,31 +15,30 @@ func splitTestName(testName string) (string, string) {
 	return before, after
 }
 
-func FindTestFile(codePath string) string {
-	files, err := os.ReadDir(codePath)
+func FindTestFiles(codePath string) []string {
+	files, err := filepath.Glob(filepath.Join(codePath, "*_test.go"))
 	if err != nil {
 		log.Printf("warning: input_dir '%s' cannot be read: %s", codePath, err)
-		return ""
+		return nil
 	}
+	var found []string
+	for _, testpath := range files {
+		fh, err := os.ReadFile(testpath)
+		if err != nil {
+			log.Printf("warning: test file '%s' read failed: %s", testpath, err)
+		}
 
-	for _, f := range files {
-		if strings.HasSuffix(f.Name(), "_test.go") {
-			testpath := filepath.Join(codePath, f.Name())
-			fh, err := os.ReadFile(testpath)
-			if err != nil {
-				log.Printf("warning: test file '%s' read failed: %s", testpath, err)
-			}
-
-			// We need to check we found the file that actually contains the tests and not only the
-			// generated test cases (cases_test.go).
-			// Text processing is easier than using AST and should be reliable enough.
-			if strings.Contains(string(fh), "func Test") {
-				return testpath
-			}
+		// We need to check we found the file that actually contains the tests and not only the
+		// generated test cases (cases_test.go).
+		// Text processing is easier than using AST and should be reliable enough.
+		if strings.Contains(string(fh), "func Test") {
+			found = append(found, testpath)
 		}
 	}
-	log.Printf("error: test file not found in input_dir '%s'", codePath)
-	return ""
+	if len(found) == 0 {
+		log.Printf("error: test file not found in input_dir '%s'", codePath)
+	}
+	return found
 }
 
 // return the associated test function code from the given test file

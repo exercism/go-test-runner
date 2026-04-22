@@ -220,8 +220,8 @@ func processTestResults(
 	results := make([]testResult, 0)
 	resultIdxByName := make(map[string]int)
 
-	testFile := FindTestFile(input_dir)
-	rootLevelTests := FindAllRootLevelTests(testFile)
+	testFiles := FindTestFiles(input_dir)
+	rootLevelTests := FindAllRootLevelTests(testFiles)
 	rootLevelTestsMap := ConvertToMapByTestName(rootLevelTests)
 
 	for _, parsedLine := range parsedOutput.testLines {
