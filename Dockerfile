@@ -21,6 +21,10 @@ RUN go build std cmd
 # Populate the build cache with the external packages
 RUN cd /opt/test-runner/external-packages && go mod download && go build ./...
 
+# Vet every standard library package once, the way go test does, so each
+# run only has to vet the student's code (see bin/warm-vet-cache.sh)
+RUN /opt/test-runner/bin/warm-vet-cache.sh
+
 # Build the test runner
 RUN cd /opt/test-runner && go build -o /opt/test-runner/bin/test-runner /opt/test-runner
 
