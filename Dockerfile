@@ -18,6 +18,7 @@ RUN go telemetry off
 # - Build the standard library and command packages.
 # - Build the external packages.
 # - Vet every standard library package once, the way go test does (see bin/warm-vet-cache.sh).
+# - Then build the test runner.
 #
 # Go updates a cache file's modification time each time it uses the file, if that time is
 # more than an hour old. In a container, changing a file from the image makes Docker copy
@@ -28,10 +29,8 @@ RUN go telemetry off
 RUN go build std cmd \
  && cd /opt/test-runner/external-packages && go mod download && go build ./... \
  && /opt/test-runner/bin/warm-vet-cache.sh \
- && find "$(go env GOCACHE)" -type f -exec touch -d "2100-01-01 00:00:00" {} +
-
-# Build the test runner
-RUN cd /opt/test-runner && go build -o /opt/test-runner/bin/test-runner /opt/test-runner
+ && find "$(go env GOCACHE)" -type f -exec touch -d "2100-01-01 00:00:00" {} + \
+ && cd /opt/test-runner && go build -o /opt/test-runner/bin/test-runner /opt/test-runner
 
 WORKDIR /opt/test-runner
 ENTRYPOINT ["sh", "/opt/test-runner/bin/run.sh"]
